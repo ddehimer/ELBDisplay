@@ -1,10 +1,13 @@
-"""
-ELB Display GUI
-ESP32-S3 / MicroPython
-"""
+import sys
+from PySide6.QtWidgets import QApplication, QLabel
 
-def main():
-    print("ELB Display GUI started")
+battery_voltage = 12.64
 
-if __name__ == "__main__":
-    main()
+app = QApplication(sys.argv)
+
+label = QLabel(f"Test Battery Voltage: {battery_voltage:.2f} V")
+label.setWindowTitle("ELB Display")
+label.resize(320, 120)
+label.show()
+
+sys.exit(app.exec())
