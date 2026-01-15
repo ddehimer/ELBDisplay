@@ -1,10 +1,15 @@
 from machine import Pin
 import time
-import i2cscan
-import temptest
 
 led = Pin(25, Pin.OUT)
 
-while True:
-    led.toggle()
-    time.sleep(0.5)
+def main():
+    try:
+        while True:
+            led.toggle()
+            time.sleep(0.5)
+    except KeyboardInterrupt:
+        print("Main loop stopped")
+
+if __name__ == "__main__":
+    main()
