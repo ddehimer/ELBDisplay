@@ -71,16 +71,15 @@ def read_heatsink_temp_c():
 
 
 # ---------------- MAIN LOOP ----------------
-while True:
-    temp_c, r_ntc, v = read_heatsink_temp_c()
+temp_c, r_ntc, v = read_heatsink_temp_c()
 
-    if temp_c is None:
-        print(f"ADC out of range: V={v:.3f} V")
-    else:
-        print(
-            f"Heatsink: {temp_c:6.2f} °C | "
-            f"R_ntc={r_ntc:7.0f} Ω | "
-            f"Vadc={v:4.3f} V"
-        )
-
-    time.sleep(10)
+if temp_c is None:
+    print(f"ADC out of range: V={v:.3f} V")
+else:
+    print(
+        f"Heatsink: {temp_c:6.2f} °C | "
+        f"R_ntc={r_ntc:7.0f} Ω | "
+        f"Vadc={v:4.3f} V"
+    )
+    
+time.sleep(10)

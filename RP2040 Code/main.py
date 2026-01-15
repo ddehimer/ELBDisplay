@@ -3,13 +3,11 @@ import time
 
 led = Pin(25, Pin.OUT)
 
-def main():
-    try:
-        while True:
-            led.toggle()
-            time.sleep(0.5)
-    except KeyboardInterrupt:
-        print("Main loop stopped")
+count = 0
 
-if __name__ == "__main__":
-    main()
+while count<5:
+    led.toggle()
+    time.sleep(0.5)
+    count += 1
+
+import temptest
