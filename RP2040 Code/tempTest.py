@@ -83,4 +83,4 @@ while True:
             f"Vadc={v:4.3f} V"
         )
 
-    time.sleep(1)
+    time.sleep(10)

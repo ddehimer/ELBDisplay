@@ -1,5 +1,7 @@
 from machine import Pin
 import time
+import i2cscan
+import temptest
 
 led = Pin(25, Pin.OUT)
 
