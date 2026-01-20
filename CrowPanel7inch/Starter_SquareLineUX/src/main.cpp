@@ -9,6 +9,7 @@
 
 
 static lv_obj_t *helloLabel = nullptr;
+static lv_style_t style_title;
 
 
 // Setup the panel.
@@ -30,8 +31,18 @@ void setup()
   // Run the LVGL timer handler once to get things started
   lv_timer_handler();
 
+  lv_style_init(&style_title);
+
+  // Text color (white example)
+  lv_style_set_text_color(&style_title, lv_color_hex(0x0000FF));
+
+  // Font size via built-in LVGL font
+  lv_style_set_text_font(&style_title, &lv_font_montserrat_22);
+
+
   helloLabel = lv_label_create(lv_scr_act());
-  lv_label_set_text(helloLabel, "Dr. Kohl is the goat");
+  lv_obj_add_style(helloLabel, &style_title, 0);
+  lv_label_set_text(helloLabel, "ELB Display");
   lv_obj_align(helloLabel, LV_ALIGN_TOP_MID, 0, 10);
 
 }
@@ -49,6 +60,7 @@ void clickedClickMe(lv_event_t *e)
   snprintf(ClickBuffer, sizeof(ClickBuffer), "%d", clickCount);
   lv_label_set_text(ui_LabelCount, ClickBuffer);
 }
+
 
 // Run Ardunio event loop
 void loop()
