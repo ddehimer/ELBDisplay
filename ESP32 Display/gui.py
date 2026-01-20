@@ -17,6 +17,8 @@ from PySide6.QtWidgets import (
     QFileDialog,
     QMessageBox,
     QHBoxLayout,
+    QCheckBox,
+    QGroupBox,
 )
 
 import pyqtgraph as pg
@@ -33,15 +35,14 @@ class MainWindow(QMainWindow):
         # -------------------------
         self.test_battery_voltage_start = 12.64
         self.test_battery_voltage_end = 11.80
-        self.shunt_voltage_nominal = 0.020   # V (20 mV nominal)
-        self.aux_battery_current_nominal = 1.50  # A nominal
 
+        self.shunt_voltage_nominal = 0.020  # V (20 mV nominal)
+        self.aux_battery_current_nominal = 1.50  # A nominal
 
         self.pre_driver_voltage = 5.10
         self.driver_voltage = 10.02
-        self.power_stage_voltage = 12.58   
-        self.vset_pot = 1.65        
-
+        self.power_stage_voltage = 12.58
+        self.vset_pot = 1.65
 
         self.test_battery_temp = 27.8
         self.heatsink_temp = 41.3
@@ -57,15 +58,12 @@ class MainWindow(QMainWindow):
 
         self.start_time = time.time()
 
+        # Plot buffers (shared x for all plots)
+        self.x_data = deque(maxlen=2000)     # minutes
+        self.y_data = deque(maxlen=2000)     # test batt volts
+        self.shunt_y = deque(maxlen=2000)    # shunt volts
+        self.aux_i_y = deque(maxlen=2000)    # aux current amps
 
-        # Plot buffers
-        self.x_data = deque(maxlen=2000)  # minutes (shared x for all plots)
-        self.y_data = deque(maxlen=2000)  # test batt volts
-        self.shunt_y = deque(maxlen=2000)  # shunt volts
-        self.aux_i_y = deque(maxlen=2000)  # aux current amps
-
-
-        # Smoothed y-axis bounds
         # Smoothed y-axis bounds (separate per plot)
         self.batt_ymin = None
         self.batt_ymax = None
@@ -76,9 +74,8 @@ class MainWindow(QMainWindow):
         self.auxi_ymin = None
         self.auxi_ymax = None
 
-
         # -------------------------
-        # Tabs
+        # Tabs (4 total)
         # -------------------------
         tabs = QTabWidget()
         self.setCentralWidget(tabs)
@@ -95,16 +92,13 @@ class MainWindow(QMainWindow):
         self.timer.timeout.connect(self.update_plot)
         self.timer.start(50)  # 20 Hz so the 10-second demo looks smooth
 
-    # -------- Tab 1: Battery Voltage + Graph --------
-        # -------- Tab 1: Battery + Shunt + Aux Current Graphs --------
+    # -------- Tab 1: Battery + Shunt + Aux Current Graphs --------
     def build_battery_tab(self) -> QWidget:
         tab = QWidget()
-
         root = QVBoxLayout(tab)
 
-        # ---- Top numeric title (optional, keep it simple) ----
         title = QLabel("Live Monitoring")
-        title.setAlignment(Qt.AlignCenter)
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title.setStyleSheet("font-size: 20px; font-weight: bold;")
         root.addWidget(title)
 
@@ -116,11 +110,11 @@ class MainWindow(QMainWindow):
         # --- Plot 1: Test Battery Voltage ---
         left_col = QVBoxLayout()
         batt_label = QLabel("Test Battery Voltage")
-        batt_label.setAlignment(Qt.AlignCenter)
+        batt_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         batt_label.setStyleSheet("font-size: 14px; font-weight: bold;")
 
         self.batt_value_label = QLabel(f"{self.test_battery_voltage_start:.2f} V")
-        self.batt_value_label.setAlignment(Qt.AlignCenter)
+        self.batt_value_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.batt_value_label.setStyleSheet("font-size: 28px;")
 
         self.plot_batt = pg.PlotWidget()
@@ -139,11 +133,11 @@ class MainWindow(QMainWindow):
         # --- Plot 2: Shunt Voltage ---
         right_col = QVBoxLayout()
         shunt_label = QLabel("Shunt Voltage")
-        shunt_label.setAlignment(Qt.AlignCenter)
+        shunt_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         shunt_label.setStyleSheet("font-size: 14px; font-weight: bold;")
 
-        self.shunt_value_label = QLabel(f"{self.shunt_voltage_nominal*1000:.1f} mV")
-        self.shunt_value_label.setAlignment(Qt.AlignCenter)
+        self.shunt_value_label = QLabel(f"{self.shunt_voltage_nominal * 1000:.1f} mV")
+        self.shunt_value_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.shunt_value_label.setStyleSheet("font-size: 28px;")
 
         self.plot_shunt = pg.PlotWidget()
@@ -161,18 +155,17 @@ class MainWindow(QMainWindow):
 
         top_row.addLayout(left_col, stretch=1)
         top_row.addLayout(right_col, stretch=1)
-
         root.addLayout(top_row, stretch=2)
 
         # ---- Bottom plot (full width): Aux battery current ----
         bottom_col = QVBoxLayout()
 
         aux_label = QLabel("Aux Battery Current")
-        aux_label.setAlignment(Qt.AlignCenter)
+        aux_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         aux_label.setStyleSheet("font-size: 14px; font-weight: bold;")
 
         self.aux_value_label = QLabel(f"{self.aux_battery_current_nominal:.2f} A")
-        self.aux_value_label.setAlignment(Qt.AlignCenter)
+        self.aux_value_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.aux_value_label.setStyleSheet("font-size: 28px;")
 
         self.plot_auxi = pg.PlotWidget()
@@ -192,9 +185,7 @@ class MainWindow(QMainWindow):
 
         return tab
 
-
-    # -------- Tab 2: Pre/Driver/Power Voltages --------
-       # -------- Tab 2: Pre/Driver/Power Voltages --------
+    # -------- Tab 2: Pre/Driver/Power Voltages (+ Vset) --------
     def build_voltage_tab(self) -> QWidget:
         tab = QWidget()
         layout = QGridLayout(tab)
@@ -208,13 +199,12 @@ class MainWindow(QMainWindow):
         layout.addWidget(QLabel("Power Stage Voltage:"), 2, 0)
         layout.addWidget(QLabel(f"{self.power_stage_voltage:.2f} V"), 2, 1)
 
-        layout.addWidget(QLabel("Vset (POT):"), 4, 0)
-        layout.addWidget(QLabel(f"{self.vset_pot:.2f} V"), 4, 1)
+        layout.addWidget(QLabel("Vset (POT):"), 3, 0)
+        layout.addWidget(QLabel(f"{self.vset_pot:.2f} V"), 3, 1)
 
         layout.setColumnStretch(0, 1)
         layout.setColumnStretch(1, 1)
         return tab
-
 
     # -------- Tab 3: Temperatures --------
     def build_temp_tab(self) -> QWidget:
@@ -231,20 +221,35 @@ class MainWindow(QMainWindow):
         layout.setColumnStretch(1, 1)
         return tab
 
-    # -------- Tab 4: File Storage / Export --------
+    # -------- Tab 4: File Storage / Export with checkbox selection --------
     def build_storage_tab(self) -> QWidget:
         tab = QWidget()
         layout = QVBoxLayout(tab)
 
         title = QLabel("File Storage")
-        title.setAlignment(Qt.AlignLeft)
+        title.setAlignment(Qt.AlignmentFlag.AlignLeft)
         title.setStyleSheet("font-size: 18px; font-weight: bold;")
 
         info = QLabel(
-            "Export the Battery Voltage vs Time data to a CSV file.\n"
-            "Columns: time_minutes, voltage_V"
+            "Select which data streams to export to a CSV file.\n"
+            "All exports include the shared time_minutes column."
         )
         info.setStyleSheet("font-size: 12px;")
+
+        # Selection group
+        select_group = QGroupBox("Select data to export")
+        select_layout = QVBoxLayout(select_group)
+
+        self.cb_export_batt = QCheckBox("Test Battery Voltage (V)")
+        self.cb_export_shunt = QCheckBox("Shunt Voltage (V)")
+        self.cb_export_auxi = QCheckBox("Aux Battery Current (A)")
+
+        # Default: export battery voltage (common)
+        self.cb_export_batt.setChecked(True)
+
+        select_layout.addWidget(self.cb_export_batt)
+        select_layout.addWidget(self.cb_export_shunt)
+        select_layout.addWidget(self.cb_export_auxi)
 
         button_row = QHBoxLayout()
         export_btn = QPushButton("Export CSV")
@@ -259,19 +264,28 @@ class MainWindow(QMainWindow):
 
         layout.addWidget(title)
         layout.addWidget(info)
+        layout.addWidget(select_group)
         layout.addLayout(button_row)
         layout.addWidget(self.export_status)
         layout.addStretch()
 
         return tab
 
-    # -------- Export Function --------
+    # -------- Export Function (selected columns) --------
     def export_csv(self):
         if len(self.x_data) < 2:
             QMessageBox.warning(self, "Export CSV", "Not enough data to export yet.")
             return
 
-        default_name = f"elb_battery_log_{time.strftime('%Y%m%d_%H%M%S')}.csv"
+        export_batt = self.cb_export_batt.isChecked()
+        export_shunt = self.cb_export_shunt.isChecked()
+        export_auxi = self.cb_export_auxi.isChecked()
+
+        if not (export_batt or export_shunt or export_auxi):
+            QMessageBox.warning(self, "Export CSV", "Please select at least one dataset to export.")
+            return
+
+        default_name = f"elb_log_{time.strftime('%Y%m%d_%H%M%S')}.csv"
 
         path, _ = QFileDialog.getSaveFileName(
             self,
@@ -283,11 +297,38 @@ class MainWindow(QMainWindow):
         if not path:
             return  # user cancelled
 
+        # Build header + column extractors in the order we want
+        header_cols = ["time_minutes"]
+        series = []  # list of (col_name, data_deque)
+
+        if export_batt:
+            header_cols.append("test_battery_voltage_V")
+            series.append(("test_battery_voltage_V", self.y_data))
+
+        if export_shunt:
+            header_cols.append("shunt_voltage_V")
+            series.append(("shunt_voltage_V", self.shunt_y))
+
+        if export_auxi:
+            header_cols.append("aux_battery_current_A")
+            series.append(("aux_battery_current_A", self.aux_i_y))
+
         try:
             with open(path, "w", newline="") as f:
-                f.write("time_minutes,voltage_V\n")
-                for t, v in zip(self.x_data, self.y_data):
-                    f.write(f"{t:.6f},{v:.6f}\n")
+                f.write(",".join(header_cols) + "\n")
+
+                # Ensure all selected series align with x_data length
+                n = min(len(self.x_data), *(len(d) for _, d in series))
+
+                # Convert to lists once (fast + stable)
+                x_list = list(self.x_data)[:n]
+                selected_lists = [(name, list(d)[:n]) for name, d in series]
+
+                for i in range(n):
+                    row = [f"{x_list[i]:.6f}"]
+                    for _, y_list in selected_lists:
+                        row.append(f"{y_list[i]:.6f}")
+                    f.write(",".join(row) + "\n")
 
             self.export_status.setText(f"Status: exported to {path}")
             QMessageBox.information(self, "Export CSV", "Export completed successfully!")
@@ -305,17 +346,15 @@ class MainWindow(QMainWindow):
             self.timer.stop()
             return
 
-        # ---- Battery discharge model (same idea as before) ----
+        # ---- Battery discharge model ----
         V_start = self.test_battery_voltage_start
         V_end = self.test_battery_voltage_end
 
         slope = (V_start - V_end) / self.max_minutes
         curvature = 0.0008
-
         batt_v = V_start - slope * simulated_minutes - curvature * (simulated_minutes ** 2)
 
-        # ---- Shunt voltage (random-ish ripple + slight trend) ----
-        # Nominal around 20 mV with a little sine ripple + gaussian noise
+        # ---- Shunt voltage (random-ish ripple + gaussian noise) ----
         shunt_base = self.shunt_voltage_nominal
         ripple = 0.003 * math.sin(2 * math.pi * simulated_minutes / 6.0)  # ~6-min ripple
         noise = random.gauss(0.0, 0.0006)  # 0.6 mV noise
@@ -324,12 +363,12 @@ class MainWindow(QMainWindow):
         # ---- Aux battery current (random-ish) ----
         aux_base = self.aux_battery_current_nominal
         aux_ripple = 0.25 * math.sin(2 * math.pi * simulated_minutes / 10.0)  # slow ripple
-        aux_noise = random.gauss(0.0, 0.05)  # noise in amps
+        aux_noise = random.gauss(0.0, 0.05)  # amps noise
         aux_i = max(0.0, aux_base + aux_ripple + aux_noise)
 
         # Update numeric displays
         self.batt_value_label.setText(f"{batt_v:.2f} V")
-        self.shunt_value_label.setText(f"{shunt_v*1000:.1f} mV")
+        self.shunt_value_label.setText(f"{shunt_v * 1000:.1f} mV")
         self.aux_value_label.setText(f"{aux_i:.2f} A")
 
         # Store X + Y data
@@ -352,10 +391,10 @@ class MainWindow(QMainWindow):
             y_min = min(y_vals)
             y_max = max(y_vals)
             base_range = (y_max - y_min) if (y_max != y_min) else 1.0
-            padding = pad_frac * base_range
+            y_pad = pad_frac * base_range
 
-            target_min = y_min - padding
-            target_max = y_max + padding
+            target_min = y_min - y_pad
+            target_max = y_max + y_pad
 
             if ymin is None or ymax is None:
                 ymin = target_min
@@ -368,9 +407,15 @@ class MainWindow(QMainWindow):
             return ymin, ymax
 
         # Apply smoothed autoscaling to each plot independently
-        self.batt_ymin, self.batt_ymax = smooth_y_range(self.y_data, self.batt_ymin, self.batt_ymax, self.plot_batt)
-        self.shunt_ymin, self.shunt_ymax = smooth_y_range(self.shunt_y, self.shunt_ymin, self.shunt_ymax, self.plot_shunt)
-        self.auxi_ymin, self.auxi_ymax = smooth_y_range(self.aux_i_y, self.auxi_ymin, self.auxi_ymax, self.plot_auxi)
+        self.batt_ymin, self.batt_ymax = smooth_y_range(
+            self.y_data, self.batt_ymin, self.batt_ymax, self.plot_batt
+        )
+        self.shunt_ymin, self.shunt_ymax = smooth_y_range(
+            self.shunt_y, self.shunt_ymin, self.shunt_ymax, self.plot_shunt
+        )
+        self.auxi_ymin, self.auxi_ymax = smooth_y_range(
+            self.aux_i_y, self.auxi_ymin, self.auxi_ymax, self.plot_auxi
+        )
 
 
 if __name__ == "__main__":
