@@ -1,9 +1,6 @@
-SET(SOURCES ui_comp_labelcount.c
-    ui_comp.c
-    ui_Screen1.c
+SET(SOURCES screens/ui_Screen1.c
     ui.c
-    ui_comp_hook.c
-    ui_helpers.c
-    ui_events.c)
+    components/ui_comp_hook.c
+    ui_helpers.c)
 
 add_library(ui ${SOURCES})

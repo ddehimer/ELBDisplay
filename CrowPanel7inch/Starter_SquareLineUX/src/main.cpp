@@ -33,7 +33,7 @@ void setup()
 
   lv_style_init(&style_title);
 
-  // Text color (white example)
+  // Text color (blue example)
   lv_style_set_text_color(&style_title, lv_color_hex(0x0000FF));
 
   // Font size via built-in LVGL font
