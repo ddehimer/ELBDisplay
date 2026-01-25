@@ -8,6 +8,30 @@
 #include "lgfx/lgfx.h"
 #include "ui.h"
 
+// ----------------------------------------------------
+// On-screen keyboard callback (TextArea -> Keyboard)
+// ----------------------------------------------------
+static void textarea_event_cb(lv_event_t * e)
+{
+  lv_event_code_t code = lv_event_get_code(e);
+  lv_obj_t * ta = (lv_obj_t *)lv_event_get_target(e);
+
+  // Show keyboard when textarea is focused or clicked
+  if (code == LV_EVENT_FOCUSED || code == LV_EVENT_CLICKED)
+  {
+    lv_keyboard_set_textarea(ui_Keyboard3, ta);
+    lv_obj_clear_flag(ui_Keyboard3, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_move_foreground(ui_Keyboard3);
+  }
+
+  // Hide keyboard when user finishes or cancels input
+  if (code == LV_EVENT_READY || code == LV_EVENT_CANCEL || code == LV_EVENT_DEFOCUSED)
+  {
+    lv_obj_add_flag(ui_Keyboard3, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_state(ta, LV_STATE_FOCUSED);
+  }
+}
+
 void setup()
 {
   delay(1000);
@@ -30,8 +54,18 @@ void setup()
   // Setup the panel / LVGL driver wrapper
   lcd.setup();
 
-  // Initialize the SquareLine UI (creates screens/objects and loads the screen)
+  // Initialize the SquareLine UI
   ui_init();
+
+  // -----------------------------
+  // Keyboard setup
+  // -----------------------------
+  // Hide keyboard at startup
+  lv_obj_add_flag(ui_Keyboard3, LV_OBJ_FLAG_HIDDEN);
+
+  // Link keyboard to your TextAreas
+  lv_obj_add_event_cb(ui_FIle_Name, textarea_event_cb, LV_EVENT_ALL, NULL);
+  lv_obj_add_event_cb(ui_Date, textarea_event_cb, LV_EVENT_ALL, NULL);
 
   // Kick LVGL once
   lv_timer_handler();
