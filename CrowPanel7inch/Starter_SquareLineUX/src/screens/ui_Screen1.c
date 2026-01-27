@@ -33,7 +33,7 @@ lv_obj_t * ui_Label9 = NULL;
 lv_obj_t * ui_Label10 = NULL;
 lv_obj_t * ui_Label11 = NULL;
 lv_obj_t * ui_File_Storage = NULL;
-lv_obj_t * ui_FIle_Name = NULL;
+lv_obj_t * ui_File_Name = NULL;
 lv_obj_t * ui_Date = NULL;
 lv_obj_t * ui_Button1 = NULL;
 lv_obj_t * ui_Label14 = NULL;
@@ -48,7 +48,7 @@ void ui_Screen1_screen_init(void)
     ui_Screen1 = lv_obj_create(NULL);
     lv_obj_clear_flag(ui_Screen1, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
 
-    ui_TabView1 = lv_tabview_create(ui_Screen1, LV_DIR_TOP, 30);
+    ui_TabView1 = lv_tabview_create(ui_Screen1, LV_DIR_TOP, 50);
     lv_obj_set_width(ui_TabView1, 800);
     lv_obj_set_height(ui_TabView1, 480);
     lv_obj_clear_flag(ui_TabView1, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
@@ -60,7 +60,7 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_width(ui_Chart2, 700);
     lv_obj_set_height(ui_Chart2, 150);
     lv_obj_set_x(ui_Chart2, 30);
-    lv_obj_set_y(ui_Chart2, 20);
+    lv_obj_set_y(ui_Chart2, 10);
     lv_chart_set_type(ui_Chart2, LV_CHART_TYPE_LINE);
     lv_chart_set_range(ui_Chart2, LV_CHART_AXIS_PRIMARY_Y, 0, 15);
     lv_chart_set_range(ui_Chart2, LV_CHART_AXIS_SECONDARY_Y, 0, 12);
@@ -80,14 +80,14 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_width(ui_Label1, LV_SIZE_CONTENT);   /// 1
     lv_obj_set_height(ui_Label1, LV_SIZE_CONTENT);    /// 1
     lv_obj_set_x(ui_Label1, 335);
-    lv_obj_set_y(ui_Label1, 0);
+    lv_obj_set_y(ui_Label1, -10);
     lv_label_set_text(ui_Label1, "Test Battery");
 
     ui_Label3 = lv_label_create(ui_Main);
     lv_obj_set_width(ui_Label3, LV_SIZE_CONTENT);   /// 1
     lv_obj_set_height(ui_Label3, LV_SIZE_CONTENT);    /// 1
     lv_obj_set_x(ui_Label3, 10);
-    lv_obj_set_y(ui_Label3, 0);
+    lv_obj_set_y(ui_Label3, -10);
     lv_label_set_text(ui_Label3, "V");
     lv_label_set_recolor(ui_Label3, "true");
     lv_obj_set_style_text_color(ui_Label3, lv_color_hex(0x29BE20), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -97,7 +97,7 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_width(ui_Label4, LV_SIZE_CONTENT);   /// 1
     lv_obj_set_height(ui_Label4, LV_SIZE_CONTENT);    /// 1
     lv_obj_set_x(ui_Label4, 740);
-    lv_obj_set_y(ui_Label4, 0);
+    lv_obj_set_y(ui_Label4, -10);
     lv_label_set_text(ui_Label4, "A");
     lv_label_set_recolor(ui_Label4, "true");
     lv_obj_set_style_text_color(ui_Label4, lv_color_hex(0xEE2800), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -107,7 +107,7 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_width(ui_Chart6, 700);
     lv_obj_set_height(ui_Chart6, 150);
     lv_obj_set_x(ui_Chart6, 30);
-    lv_obj_set_y(ui_Chart6, 240);
+    lv_obj_set_y(ui_Chart6, 225);
     lv_chart_set_type(ui_Chart6, LV_CHART_TYPE_LINE);
     lv_chart_set_range(ui_Chart6, LV_CHART_AXIS_PRIMARY_Y, 0, 200);
     lv_chart_set_range(ui_Chart6, LV_CHART_AXIS_SECONDARY_Y, 0, 200);
@@ -123,7 +123,7 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_width(ui_Label6, LV_SIZE_CONTENT);   /// 1
     lv_obj_set_height(ui_Label6, LV_SIZE_CONTENT);    /// 1
     lv_obj_set_x(ui_Label6, 740);
-    lv_obj_set_y(ui_Label6, 220);
+    lv_obj_set_y(ui_Label6, 205);
     lv_label_set_text(ui_Label6, "A");
     lv_label_set_recolor(ui_Label6, "true");
     lv_obj_set_style_text_color(ui_Label6, lv_color_hex(0xE610E6), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -133,7 +133,7 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_width(ui_Label2, LV_SIZE_CONTENT);   /// 1
     lv_obj_set_height(ui_Label2, LV_SIZE_CONTENT);    /// 1
     lv_obj_set_x(ui_Label2, 355);
-    lv_obj_set_y(ui_Label2, 220);
+    lv_obj_set_y(ui_Label2, 205);
     lv_label_set_text(ui_Label2, "Shunt");
 
     ui_Current = lv_tabview_add_tab(ui_TabView1, "Current");
@@ -169,6 +169,8 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_x(ui_Label7, 315);
     lv_obj_set_y(ui_Label7, 0);
     lv_label_set_text(ui_Label7, "Auxiliary Battery");
+    lv_obj_set_style_text_color(ui_Label7, lv_color_hex(0x1879D5), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_Label7, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_Bar2 = lv_bar_create(ui_Current);
     lv_bar_set_range(ui_Bar2, 0, 20);
@@ -261,13 +263,13 @@ void ui_Screen1_screen_init(void)
 
     ui_File_Storage = lv_tabview_add_tab(ui_TabView1, "File Storage");
 
-    ui_FIle_Name = lv_textarea_create(ui_File_Storage);
-    lv_obj_set_width(ui_FIle_Name, 700);
-    lv_obj_set_height(ui_FIle_Name, LV_SIZE_CONTENT);    /// 50
-    lv_obj_set_x(ui_FIle_Name, 30);
-    lv_obj_set_y(ui_FIle_Name, 20);
-    lv_textarea_set_placeholder_text(ui_FIle_Name, "File Name");
-    lv_textarea_set_one_line(ui_FIle_Name, true);
+    ui_File_Name = lv_textarea_create(ui_File_Storage);
+    lv_obj_set_width(ui_File_Name, 700);
+    lv_obj_set_height(ui_File_Name, LV_SIZE_CONTENT);    /// 50
+    lv_obj_set_x(ui_File_Name, 30);
+    lv_obj_set_y(ui_File_Name, 20);
+    lv_textarea_set_placeholder_text(ui_File_Name, "File Name");
+    lv_textarea_set_one_line(ui_File_Name, true);
 
     ui_Date = lv_textarea_create(ui_File_Storage);
     lv_obj_set_width(ui_Date, 700);
@@ -300,9 +302,9 @@ void ui_Screen1_screen_init(void)
 
     ui_Keyboard3 = lv_keyboard_create(ui_TabView1);
     lv_obj_set_width(ui_Keyboard3, 775);
-    lv_obj_set_height(ui_Keyboard3, 270);
-    lv_obj_set_x(ui_Keyboard3, 12);
-    lv_obj_set_y(ui_Keyboard3, 200);
+    lv_obj_set_height(ui_Keyboard3, 250);
+    lv_obj_set_x(ui_Keyboard3, 0);
+    lv_obj_set_y(ui_Keyboard3, -5);
     lv_obj_add_flag(ui_Keyboard3, LV_OBJ_FLAG_HIDDEN);     /// Flags
 
     uic_Screen1 = ui_Screen1;
@@ -344,7 +346,7 @@ void ui_Screen1_screen_destroy(void)
     ui_Label10 = NULL;
     ui_Label11 = NULL;
     ui_File_Storage = NULL;
-    ui_FIle_Name = NULL;
+    ui_File_Name = NULL;
     ui_Date = NULL;
     ui_Button1 = NULL;
     ui_Label14 = NULL;

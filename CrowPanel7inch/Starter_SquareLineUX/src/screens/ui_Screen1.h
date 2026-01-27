@@ -38,7 +38,7 @@ extern lv_obj_t * ui_Label9;
 extern lv_obj_t * ui_Label10;
 extern lv_obj_t * ui_Label11;
 extern lv_obj_t * ui_File_Storage;
-extern lv_obj_t * ui_FIle_Name;
+extern lv_obj_t * ui_File_Name;
 extern lv_obj_t * ui_Date;
 extern lv_obj_t * ui_Button1;
 extern lv_obj_t * ui_Label14;
