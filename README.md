@@ -21,9 +21,8 @@ The nodes communicate over a **UART** connection using a simple, line-based ASCI
 
 ## High-Level Data Flow
 
-Sensors → ADCs → RP2040 → UART → ESP32 → Display
-↓
-SD Card (CSV)
+Sensors → ADCs → RP2040 → UART → ESP32 → Display↓
+                                            SD Card (CSV)
 
 Control commands flow in the opposite direction:
 
