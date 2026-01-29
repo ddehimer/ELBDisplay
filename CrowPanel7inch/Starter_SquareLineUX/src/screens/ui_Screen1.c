@@ -5,18 +5,40 @@
 
 #include "../ui.h"
 
+lv_obj_t * uic_Current;
 lv_obj_t * uic_TabView1;
 lv_obj_t * uic_Screen1;
 lv_obj_t * ui_Screen1 = NULL;
 lv_obj_t * ui_TabView1 = NULL;
-lv_obj_t * ui_TabPage1 = NULL;
-lv_obj_t * ui_TabPage2 = NULL;
-lv_obj_t * ui_TabPage3 = NULL;
-lv_obj_t * ui_TabPage4 = NULL;
-lv_obj_t * ui_TabPage5 = NULL;
-lv_obj_t * ui_Chart1 = NULL;
+lv_obj_t * ui_Main = NULL;
 lv_obj_t * ui_Chart2 = NULL;
 lv_obj_t * ui_Label1 = NULL;
+lv_obj_t * ui_Label3 = NULL;
+lv_obj_t * ui_Label4 = NULL;
+lv_obj_t * ui_Chart6 = NULL;
+lv_obj_t * ui_Label6 = NULL;
+lv_obj_t * ui_Label2 = NULL;
+lv_obj_t * ui_Current = NULL;
+lv_obj_t * ui_Chart1 = NULL;
+lv_obj_t * ui_Label15 = NULL;
+lv_obj_t * ui_Label7 = NULL;
+lv_obj_t * ui_Bar2 = NULL;
+lv_obj_t * ui_Label12 = NULL;
+lv_obj_t * ui_Label13 = NULL;
+lv_obj_t * ui_Temperatures = NULL;
+lv_obj_t * ui_Chart3 = NULL;
+lv_obj_t * ui_Label8 = NULL;
+lv_obj_t * ui_Label5 = NULL;
+lv_obj_t * ui_Label9 = NULL;
+lv_obj_t * ui_Label10 = NULL;
+lv_obj_t * ui_Label11 = NULL;
+lv_obj_t * ui_File_Storage = NULL;
+lv_obj_t * ui_File_Name = NULL;
+lv_obj_t * ui_Date = NULL;
+lv_obj_t * ui_Button1 = NULL;
+lv_obj_t * ui_Label14 = NULL;
+lv_obj_t * ui_Settings = NULL;
+lv_obj_t * ui_Keyboard3 = NULL;
 // event funtions
 
 // build funtions
@@ -26,64 +48,268 @@ void ui_Screen1_screen_init(void)
     ui_Screen1 = lv_obj_create(NULL);
     lv_obj_clear_flag(ui_Screen1, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
 
-    ui_TabView1 = lv_tabview_create(ui_Screen1, LV_DIR_TOP, 30);
-    lv_obj_set_width(ui_TabView1, 798);
-    lv_obj_set_height(ui_TabView1, 476);
-    lv_obj_set_x(ui_TabView1, 0);
-    lv_obj_set_y(ui_TabView1, 1);
-    lv_obj_set_align(ui_TabView1, LV_ALIGN_TOP_MID);
+    ui_TabView1 = lv_tabview_create(ui_Screen1, LV_DIR_TOP, 50);
+    lv_obj_set_width(ui_TabView1, 800);
+    lv_obj_set_height(ui_TabView1, 480);
     lv_obj_clear_flag(ui_TabView1, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
 
-    ui_TabPage1 = lv_tabview_add_tab(ui_TabView1, "Main");
+    ui_Main = lv_tabview_add_tab(ui_TabView1, "Main");
+    lv_obj_set_style_bg_img_tiled(ui_Main, true, LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    ui_TabPage2 = lv_tabview_add_tab(ui_TabView1, "Voltages");
-
-    ui_TabPage3 = lv_tabview_add_tab(ui_TabView1, "Temperatures");
-
-    ui_TabPage4 = lv_tabview_add_tab(ui_TabView1, "File Storage");
-
-    ui_TabPage5 = lv_tabview_add_tab(ui_TabView1, "Settings");
-
-    ui_Chart1 = lv_chart_create(ui_Screen1);
-    lv_obj_set_width(ui_Chart1, 706);
-    lv_obj_set_height(ui_Chart1, 100);
-    lv_obj_set_x(ui_Chart1, -3);
-    lv_obj_set_y(ui_Chart1, -101);
-    lv_obj_set_align(ui_Chart1, LV_ALIGN_CENTER);
-    lv_chart_set_type(ui_Chart1, LV_CHART_TYPE_LINE);
-    lv_chart_set_axis_tick(ui_Chart1, LV_CHART_AXIS_PRIMARY_X, 10, 5, 5, 2, true, 50);
-    lv_chart_set_axis_tick(ui_Chart1, LV_CHART_AXIS_PRIMARY_Y, 10, 5, 5, 2, true, 50);
-    lv_chart_set_axis_tick(ui_Chart1, LV_CHART_AXIS_SECONDARY_Y, 10, 5, 5, 2, true, 25);
-    lv_chart_series_t * ui_Chart1_series_1 = lv_chart_add_series(ui_Chart1, lv_color_hex(0x808080),
-                                                                 LV_CHART_AXIS_PRIMARY_Y);
-    static lv_coord_t ui_Chart1_series_1_array[] = { 0, 10, 20, 40, 80, 80, 40, 20, 10, 0 };
-    lv_chart_set_ext_y_array(ui_Chart1, ui_Chart1_series_1, ui_Chart1_series_1_array);
-
-    ui_Chart2 = lv_chart_create(ui_Screen1);
-    lv_obj_set_width(ui_Chart2, 704);
-    lv_obj_set_height(ui_Chart2, 100);
-    lv_obj_set_x(ui_Chart2, -4);
-    lv_obj_set_y(ui_Chart2, 90);
-    lv_obj_set_align(ui_Chart2, LV_ALIGN_CENTER);
+    ui_Chart2 = lv_chart_create(ui_Main);
+    lv_obj_set_width(ui_Chart2, 700);
+    lv_obj_set_height(ui_Chart2, 150);
+    lv_obj_set_x(ui_Chart2, 30);
+    lv_obj_set_y(ui_Chart2, 10);
     lv_chart_set_type(ui_Chart2, LV_CHART_TYPE_LINE);
-    lv_chart_set_axis_tick(ui_Chart2, LV_CHART_AXIS_PRIMARY_X, 10, 5, 5, 2, true, 50);
+    lv_chart_set_range(ui_Chart2, LV_CHART_AXIS_PRIMARY_Y, 0, 15);
+    lv_chart_set_range(ui_Chart2, LV_CHART_AXIS_SECONDARY_Y, 0, 12);
+    lv_chart_set_axis_tick(ui_Chart2, LV_CHART_AXIS_PRIMARY_X, 5, 5, 10, 2, true, 50);
     lv_chart_set_axis_tick(ui_Chart2, LV_CHART_AXIS_PRIMARY_Y, 10, 5, 5, 2, true, 50);
     lv_chart_set_axis_tick(ui_Chart2, LV_CHART_AXIS_SECONDARY_Y, 10, 5, 5, 2, true, 25);
-    lv_chart_series_t * ui_Chart2_series_1 = lv_chart_add_series(ui_Chart2, lv_color_hex(0x808080),
+    lv_chart_series_t * ui_Chart2_series_1 = lv_chart_add_series(ui_Chart2, lv_color_hex(0x2DC024),
                                                                  LV_CHART_AXIS_PRIMARY_Y);
-    static lv_coord_t ui_Chart2_series_1_array[] = { 0, 10, 20, 40, 80, 80, 40, 20, 10, 0 };
+    static lv_coord_t ui_Chart2_series_1_array[] = { 12, 12, 11, 11, 10, 10, 9, 9, 8, 0 };
     lv_chart_set_ext_y_array(ui_Chart2, ui_Chart2_series_1, ui_Chart2_series_1_array);
+    lv_chart_series_t * ui_Chart2_series_2 = lv_chart_add_series(ui_Chart2, lv_color_hex(0xEF3A16),
+                                                                 LV_CHART_AXIS_SECONDARY_Y);
+    static lv_coord_t ui_Chart2_series_2_array[] = { 0, 1, 5, 5, 5, 5, 5, 5, 5, 5, 5 };
+    lv_chart_set_ext_y_array(ui_Chart2, ui_Chart2_series_2, ui_Chart2_series_2_array);
 
-    ui_Label1 = lv_label_create(ui_Screen1);
+    ui_Label1 = lv_label_create(ui_Main);
     lv_obj_set_width(ui_Label1, LV_SIZE_CONTENT);   /// 1
     lv_obj_set_height(ui_Label1, LV_SIZE_CONTENT);    /// 1
-    lv_obj_set_x(ui_Label1, -6);
-    lv_obj_set_y(ui_Label1, -185);
-    lv_obj_set_align(ui_Label1, LV_ALIGN_CENTER);
-    lv_label_set_text(ui_Label1, "Test Battery (V)");
+    lv_obj_set_x(ui_Label1, 335);
+    lv_obj_set_y(ui_Label1, -10);
+    lv_label_set_text(ui_Label1, "Test Battery");
+
+    ui_Label3 = lv_label_create(ui_Main);
+    lv_obj_set_width(ui_Label3, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_Label3, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_Label3, 10);
+    lv_obj_set_y(ui_Label3, -10);
+    lv_label_set_text(ui_Label3, "V");
+    lv_label_set_recolor(ui_Label3, "true");
+    lv_obj_set_style_text_color(ui_Label3, lv_color_hex(0x29BE20), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_Label3, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_Label4 = lv_label_create(ui_Main);
+    lv_obj_set_width(ui_Label4, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_Label4, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_Label4, 740);
+    lv_obj_set_y(ui_Label4, -10);
+    lv_label_set_text(ui_Label4, "A");
+    lv_label_set_recolor(ui_Label4, "true");
+    lv_obj_set_style_text_color(ui_Label4, lv_color_hex(0xEE2800), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_Label4, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_Chart6 = lv_chart_create(ui_Main);
+    lv_obj_set_width(ui_Chart6, 700);
+    lv_obj_set_height(ui_Chart6, 150);
+    lv_obj_set_x(ui_Chart6, 30);
+    lv_obj_set_y(ui_Chart6, 225);
+    lv_chart_set_type(ui_Chart6, LV_CHART_TYPE_LINE);
+    lv_chart_set_range(ui_Chart6, LV_CHART_AXIS_PRIMARY_Y, 0, 200);
+    lv_chart_set_range(ui_Chart6, LV_CHART_AXIS_SECONDARY_Y, 0, 200);
+    lv_chart_set_axis_tick(ui_Chart6, LV_CHART_AXIS_PRIMARY_X, 10, 5, 10, 2, true, 50);
+    lv_chart_set_axis_tick(ui_Chart6, LV_CHART_AXIS_PRIMARY_Y, 10, 5, 0, 2, false, 50);
+    lv_chart_set_axis_tick(ui_Chart6, LV_CHART_AXIS_SECONDARY_Y, 10, 5, 5, 2, true, 25);
+    lv_chart_series_t * ui_Chart6_series_1 = lv_chart_add_series(ui_Chart6, lv_color_hex(0xE610E2),
+                                                                 LV_CHART_AXIS_PRIMARY_Y);
+    static lv_coord_t ui_Chart6_series_1_array[] = { 0, 0, 0, 5, 7, 10, 20, 40, 80, 200 };
+    lv_chart_set_ext_y_array(ui_Chart6, ui_Chart6_series_1, ui_Chart6_series_1_array);
+
+    ui_Label6 = lv_label_create(ui_Main);
+    lv_obj_set_width(ui_Label6, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_Label6, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_Label6, 740);
+    lv_obj_set_y(ui_Label6, 205);
+    lv_label_set_text(ui_Label6, "A");
+    lv_label_set_recolor(ui_Label6, "true");
+    lv_obj_set_style_text_color(ui_Label6, lv_color_hex(0xE610E6), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_Label6, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_Label2 = lv_label_create(ui_Main);
+    lv_obj_set_width(ui_Label2, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_Label2, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_Label2, 355);
+    lv_obj_set_y(ui_Label2, 205);
+    lv_label_set_text(ui_Label2, "Shunt");
+
+    ui_Current = lv_tabview_add_tab(ui_TabView1, "Current");
+
+    ui_Chart1 = lv_chart_create(ui_Current);
+    lv_obj_set_width(ui_Chart1, 700);
+    lv_obj_set_height(ui_Chart1, 150);
+    lv_obj_set_x(ui_Chart1, 30);
+    lv_obj_set_y(ui_Chart1, 20);
+    lv_chart_set_type(ui_Chart1, LV_CHART_TYPE_LINE);
+    lv_chart_set_range(ui_Chart1, LV_CHART_AXIS_PRIMARY_Y, 0, 12);
+    lv_chart_set_axis_tick(ui_Chart1, LV_CHART_AXIS_PRIMARY_X, 10, 5, 5, 2, true, 50);
+    lv_chart_set_axis_tick(ui_Chart1, LV_CHART_AXIS_PRIMARY_Y, 10, 5, 5, 2, true, 50);
+    lv_chart_set_axis_tick(ui_Chart1, LV_CHART_AXIS_SECONDARY_Y, 10, 5, 0, 2, true, 25);
+    lv_chart_series_t * ui_Chart1_series_1 = lv_chart_add_series(ui_Chart1, lv_color_hex(0x1E7AD6),
+                                                                 LV_CHART_AXIS_PRIMARY_Y);
+    static lv_coord_t ui_Chart1_series_1_array[] = { 0, 5, 10, 9, 10, 9, 10, 9, 10, 8 };
+    lv_chart_set_ext_y_array(ui_Chart1, ui_Chart1_series_1, ui_Chart1_series_1_array);
+
+    ui_Label15 = lv_label_create(ui_Current);
+    lv_obj_set_width(ui_Label15, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_Label15, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_Label15, 10);
+    lv_obj_set_y(ui_Label15, 0);
+    lv_label_set_text(ui_Label15, "A");
+    lv_label_set_recolor(ui_Label15, "true");
+    lv_obj_set_style_text_color(ui_Label15, lv_color_hex(0x1879D5), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_Label15, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_Label7 = lv_label_create(ui_Current);
+    lv_obj_set_width(ui_Label7, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_Label7, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_Label7, 315);
+    lv_obj_set_y(ui_Label7, 0);
+    lv_label_set_text(ui_Label7, "Auxiliary Battery");
+    lv_obj_set_style_text_color(ui_Label7, lv_color_hex(0x1879D5), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_Label7, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_Bar2 = lv_bar_create(ui_Current);
+    lv_bar_set_range(ui_Bar2, 0, 20);
+    lv_bar_set_value(ui_Bar2, 12, LV_ANIM_OFF);
+    lv_bar_set_start_value(ui_Bar2, 0, LV_ANIM_OFF);
+    lv_obj_set_width(ui_Bar2, 250);
+    lv_obj_set_height(ui_Bar2, 82);
+    lv_obj_set_x(ui_Bar2, 250);
+    lv_obj_set_y(ui_Bar2, 275);
+
+    ui_Label12 = lv_label_create(ui_Current);
+    lv_obj_set_width(ui_Label12, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_Label12, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_Label12, 295);
+    lv_obj_set_y(ui_Label12, 250);
+    lv_label_set_text(ui_Label12, "Potentiometer (A) -");
+
+    ui_Label13 = lv_label_create(ui_Current);
+    lv_obj_set_width(ui_Label13, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_Label13, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_Label13, 445);
+    lv_obj_set_y(ui_Label13, 250);
+    lv_label_set_text(ui_Label13, "12");
+
+    ui_Temperatures = lv_tabview_add_tab(ui_TabView1, "Temperatures");
+
+    ui_Chart3 = lv_chart_create(ui_Temperatures);
+    lv_obj_set_width(ui_Chart3, 700);
+    lv_obj_set_height(ui_Chart3, 150);
+    lv_obj_set_x(ui_Chart3, 30);
+    lv_obj_set_y(ui_Chart3, 20);
+    lv_chart_set_type(ui_Chart3, LV_CHART_TYPE_LINE);
+    lv_chart_set_range(ui_Chart3, LV_CHART_AXIS_PRIMARY_Y, 0, 200);
+    lv_chart_set_axis_tick(ui_Chart3, LV_CHART_AXIS_PRIMARY_X, 10, 5, 10, 4, true, 50);
+    lv_chart_set_axis_tick(ui_Chart3, LV_CHART_AXIS_PRIMARY_Y, 10, 5, 5, 2, true, 50);
+    lv_chart_set_axis_tick(ui_Chart3, LV_CHART_AXIS_SECONDARY_Y, 10, 5, 5, 2, true, 25);
+    lv_chart_series_t * ui_Chart3_series_1 = lv_chart_add_series(ui_Chart3, lv_color_hex(0x41C539),
+                                                                 LV_CHART_AXIS_PRIMARY_Y);
+    static lv_coord_t ui_Chart3_series_1_array[] = { 70, 70, 75, 80, 80, 85, 90, 100, 140, 190 };
+    lv_chart_set_ext_y_array(ui_Chart3, ui_Chart3_series_1, ui_Chart3_series_1_array);
+    lv_chart_series_t * ui_Chart3_series_2 = lv_chart_add_series(ui_Chart3, lv_color_hex(0xEE2B04),
+                                                                 LV_CHART_AXIS_SECONDARY_Y);
+    static lv_coord_t ui_Chart3_series_2_array[] = { 60, 60, 60, 60, 65, 65, 70, 70, 75, 80 };
+    lv_chart_set_ext_y_array(ui_Chart3, ui_Chart3_series_2, ui_Chart3_series_2_array);
+    lv_obj_set_style_bg_color(ui_Chart3, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_Chart3, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_Label8 = lv_label_create(ui_Temperatures);
+    lv_obj_set_width(ui_Label8, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_Label8, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_Label8, 315);
+    lv_obj_set_y(ui_Label8, 0);
+    lv_label_set_text(ui_Label8, "Heatsink");
+    lv_obj_set_style_text_color(ui_Label8, lv_color_hex(0x29BE20), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_Label8, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_Label5 = lv_label_create(ui_Temperatures);
+    lv_obj_set_width(ui_Label5, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_Label5, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_Label5, 380);
+    lv_obj_set_y(ui_Label5, 0);
+    lv_label_set_text(ui_Label5, "/");
+
+    ui_Label9 = lv_label_create(ui_Temperatures);
+    lv_obj_set_width(ui_Label9, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_Label9, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_Label9, 385);
+    lv_obj_set_y(ui_Label9, 0);
+    lv_label_set_text(ui_Label9, "Battery");
+    lv_obj_set_style_text_color(ui_Label9, lv_color_hex(0xEE2800), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_Label9, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_Label10 = lv_label_create(ui_Temperatures);
+    lv_obj_set_width(ui_Label10, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_Label10, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_Label10, 10);
+    lv_obj_set_y(ui_Label10, 0);
+    lv_label_set_text(ui_Label10, "F");
+    lv_obj_set_style_text_color(ui_Label10, lv_color_hex(0x29BE20), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_Label10, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_Label11 = lv_label_create(ui_Temperatures);
+    lv_obj_set_width(ui_Label11, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_Label11, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_Label11, 740);
+    lv_obj_set_y(ui_Label11, 0);
+    lv_label_set_text(ui_Label11, "F");
+    lv_obj_set_style_text_color(ui_Label11, lv_color_hex(0xEE2800), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_Label11, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_File_Storage = lv_tabview_add_tab(ui_TabView1, "File Storage");
+
+    ui_File_Name = lv_textarea_create(ui_File_Storage);
+    lv_obj_set_width(ui_File_Name, 700);
+    lv_obj_set_height(ui_File_Name, LV_SIZE_CONTENT);    /// 50
+    lv_obj_set_x(ui_File_Name, 30);
+    lv_obj_set_y(ui_File_Name, 20);
+    lv_textarea_set_placeholder_text(ui_File_Name, "File Name");
+    lv_textarea_set_one_line(ui_File_Name, true);
+
+    ui_Date = lv_textarea_create(ui_File_Storage);
+    lv_obj_set_width(ui_Date, 700);
+    lv_obj_set_height(ui_Date, LV_SIZE_CONTENT);    /// 50
+    lv_obj_set_x(ui_Date, 30);
+    lv_obj_set_y(ui_Date, 100);
+    lv_textarea_set_placeholder_text(ui_Date, "Date");
+    lv_textarea_set_one_line(ui_Date, true);
+
+    ui_Button1 = lv_btn_create(ui_File_Storage);
+    lv_obj_set_width(ui_Button1, 200);
+    lv_obj_set_height(ui_Button1, 50);
+    lv_obj_set_x(ui_Button1, 300);
+    lv_obj_set_y(ui_Button1, 300);
+    lv_obj_add_flag(ui_Button1, LV_OBJ_FLAG_SCROLL_ON_FOCUS);     /// Flags
+    lv_obj_clear_flag(ui_Button1, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+    lv_obj_set_style_text_color(ui_Button1, lv_color_hex(0x030303), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_Button1, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_Label14 = lv_label_create(ui_File_Storage);
+    lv_obj_set_width(ui_Label14, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_Label14, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_Label14, 375);
+    lv_obj_set_y(ui_Label14, 315);
+    lv_label_set_text(ui_Label14, "Export!");
+    lv_obj_set_style_text_color(ui_Label14, lv_color_hex(0xF6F6F6), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_Label14, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_Settings = lv_tabview_add_tab(ui_TabView1, "Settings");
+
+    ui_Keyboard3 = lv_keyboard_create(ui_TabView1);
+    lv_obj_set_width(ui_Keyboard3, 775);
+    lv_obj_set_height(ui_Keyboard3, 250);
+    lv_obj_set_x(ui_Keyboard3, 0);
+    lv_obj_set_y(ui_Keyboard3, -5);
+    lv_obj_add_flag(ui_Keyboard3, LV_OBJ_FLAG_HIDDEN);     /// Flags
 
     uic_Screen1 = ui_Screen1;
     uic_TabView1 = ui_TabView1;
+    uic_Current = ui_Current;
 
 }
 
@@ -96,13 +322,35 @@ void ui_Screen1_screen_destroy(void)
     ui_Screen1 = NULL;
     uic_TabView1 = NULL;
     ui_TabView1 = NULL;
-    ui_TabPage1 = NULL;
-    ui_TabPage2 = NULL;
-    ui_TabPage3 = NULL;
-    ui_TabPage4 = NULL;
-    ui_TabPage5 = NULL;
-    ui_Chart1 = NULL;
+    ui_Main = NULL;
     ui_Chart2 = NULL;
     ui_Label1 = NULL;
+    ui_Label3 = NULL;
+    ui_Label4 = NULL;
+    ui_Chart6 = NULL;
+    ui_Label6 = NULL;
+    ui_Label2 = NULL;
+    uic_Current = NULL;
+    ui_Current = NULL;
+    ui_Chart1 = NULL;
+    ui_Label15 = NULL;
+    ui_Label7 = NULL;
+    ui_Bar2 = NULL;
+    ui_Label12 = NULL;
+    ui_Label13 = NULL;
+    ui_Temperatures = NULL;
+    ui_Chart3 = NULL;
+    ui_Label8 = NULL;
+    ui_Label5 = NULL;
+    ui_Label9 = NULL;
+    ui_Label10 = NULL;
+    ui_Label11 = NULL;
+    ui_File_Storage = NULL;
+    ui_File_Name = NULL;
+    ui_Date = NULL;
+    ui_Button1 = NULL;
+    ui_Label14 = NULL;
+    ui_Settings = NULL;
+    ui_Keyboard3 = NULL;
 
 }

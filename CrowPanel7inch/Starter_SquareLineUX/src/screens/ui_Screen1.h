@@ -15,17 +15,39 @@ extern void ui_Screen1_screen_init(void);
 extern void ui_Screen1_screen_destroy(void);
 extern lv_obj_t * ui_Screen1;
 extern lv_obj_t * ui_TabView1;
-extern lv_obj_t * ui_TabPage1;
-extern lv_obj_t * ui_TabPage2;
-extern lv_obj_t * ui_TabPage3;
-extern lv_obj_t * ui_TabPage4;
-extern lv_obj_t * ui_TabPage5;
-extern lv_obj_t * ui_Chart1;
+extern lv_obj_t * ui_Main;
 extern lv_obj_t * ui_Chart2;
 extern lv_obj_t * ui_Label1;
+extern lv_obj_t * ui_Label3;
+extern lv_obj_t * ui_Label4;
+extern lv_obj_t * ui_Chart6;
+extern lv_obj_t * ui_Label6;
+extern lv_obj_t * ui_Label2;
+extern lv_obj_t * ui_Current;
+extern lv_obj_t * ui_Chart1;
+extern lv_obj_t * ui_Label15;
+extern lv_obj_t * ui_Label7;
+extern lv_obj_t * ui_Bar2;
+extern lv_obj_t * ui_Label12;
+extern lv_obj_t * ui_Label13;
+extern lv_obj_t * ui_Temperatures;
+extern lv_obj_t * ui_Chart3;
+extern lv_obj_t * ui_Label8;
+extern lv_obj_t * ui_Label5;
+extern lv_obj_t * ui_Label9;
+extern lv_obj_t * ui_Label10;
+extern lv_obj_t * ui_Label11;
+extern lv_obj_t * ui_File_Storage;
+extern lv_obj_t * ui_File_Name;
+extern lv_obj_t * ui_Date;
+extern lv_obj_t * ui_Button1;
+extern lv_obj_t * ui_Label14;
+extern lv_obj_t * ui_Settings;
+extern lv_obj_t * ui_Keyboard3;
 // CUSTOM VARIABLES
 extern lv_obj_t * uic_Screen1;
 extern lv_obj_t * uic_TabView1;
+extern lv_obj_t * uic_Current;
 
 #ifdef __cplusplus
 } /*extern "C"*/
