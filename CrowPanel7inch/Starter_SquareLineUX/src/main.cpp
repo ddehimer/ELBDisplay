@@ -7,8 +7,10 @@
 
 #include "lgfx/lgfx.h"
 #include "ui.h"
+#include "screens/ui_Screen1.h"
 
 #include "sd_export.h"
+
 
 // ----------------------------------------------------
 // Globals
@@ -43,7 +45,9 @@ static void export_event_cb(lv_event_t* e)
     return;
   }
 
-  bool ok = sd_export_csv(name, date);
+bool ok = sd_export_chart_csv_first_series(name, date, "shunt", ui_Chart6);
+
+
   if (ok) Serial.println("✅ Export success (CSV written to SD).");
   else    Serial.println("❌ Export failed.");
 }

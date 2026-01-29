@@ -2,8 +2,10 @@
 #include <FS.h>
 #include <SD.h>
 #include <SPI.h>
+#include <lvgl.h>
 
 #include "sd_export.h"
+
 
 // DIS08070H microSD (TF) SPI pins (we'll verify/adjust if needed)
 static constexpr int SD_CS   = 10;
@@ -80,3 +82,59 @@ bool sd_export_csv(const char* name_raw, const char* date_raw)
   Serial.println("✅ CSV export done");
   return true;
 }
+
+bool sd_export_chart_csv_first_series(const char* name_raw, const char* date_raw,
+                                      const char* suffix,
+                                      lv_obj_t* chart)
+{
+  if (!name_raw || !date_raw || !suffix || !chart) return false;
+
+  // Get the first series on the chart (works even if SquareLine keeps it local)
+  lv_chart_series_t* series = lv_chart_get_series_next(chart, NULL);
+  if (!series) {
+    Serial.println("❌ No chart series found on this chart.");
+    return false;
+  }
+
+  // ---- same body as your old series export ----
+  char name[64];
+  char date[32];
+  snprintf(name, sizeof(name), "%s", name_raw);
+  snprintf(date, sizeof(date), "%s", date_raw);
+
+  sanitize(name);
+  sanitize(date);
+
+  if (!SD.exists("/logs")) SD.mkdir("/logs");
+
+  char suffix_buf[32];
+  snprintf(suffix_buf, sizeof(suffix_buf), "%s", suffix);
+  sanitize(suffix_buf);
+
+  char path[160];
+  snprintf(path, sizeof(path), "/logs/%s_%s_%s.csv", date, name, suffix_buf);
+
+  Serial.print("Writing CSV: ");
+  Serial.println(path);
+
+  File f = SD.open(path, FILE_WRITE);
+  if (!f) {
+    Serial.println("❌ Failed to open file");
+    return false;
+  }
+
+  f.println("index,y");
+
+  uint16_t n = lv_chart_get_point_count(chart);
+  const lv_coord_t* y = lv_chart_get_y_array(chart, series);
+
+  for (uint16_t i = 0; i < n; i++) {
+    if (y[i] == LV_CHART_POINT_NONE) continue;
+    f.printf("%u,%d\n", i, (int)y[i]);
+  }
+
+  f.close();
+  Serial.println("✅ Chart CSV export done");
+  return true;
+}
+
