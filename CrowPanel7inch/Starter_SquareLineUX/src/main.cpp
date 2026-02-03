@@ -45,7 +45,11 @@ static void export_event_cb(lv_event_t* e)
     return;
   }
 
-bool ok = sd_export_chart_csv_first_series(name, date, "shunt", ui_Chart6);
+  bool ok = sd_export_all_graphs_combined_csv(name, date,
+                                               ui_Chart2,
+                                               ui_Chart6,
+                                               ui_Chart1,
+                                               ui_Chart3);
 
 
   if (ok) Serial.println("✅ Export success (CSV written to SD).");
