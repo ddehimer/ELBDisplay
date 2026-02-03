@@ -1,22 +1,27 @@
-from machine import UART, Pin
+from machine import I2C, Pin
 import time
 
-uart = UART(0, baudrate=115200, tx=Pin(0), rx=Pin(1))
+def dac_write(code):
+    code = max(0, min(4095, int(code)))
+    cmd = 0x40              # Fast write
+    msb = (code >> 4) & 0xFF
+    lsb = (code & 0x0F) << 4
+    i2c.writeto(0x60, bytes([cmd, msb, lsb]))
 
-def send(msg):
-    uart.write((msg + "\n").encode("utf-8"))
 
-def receive():
-    if uart.any():
-        data = uart.readline()
-        if isinstance(data, bytes):
-            return data.decode("utf-8").strip()
-    return None
+i2c = I2C(0, sda=Pin(4), scl=Pin(5), freq=100_000)
 
-send("RP2040_READY")
+print("I2C scan:", i2c.scan())
 
 while True:
-    cmd = receive()
-    if cmd:
-        send("ECHO:" + cmd)
-    time.sleep(0.1)
+    print("DAC = 0")
+    dac_write(0)
+    time.sleep(3)
+
+    print("DAC = mid")
+    dac_write(2048)
+    time.sleep(3)
+
+    print("DAC = full")
+    dac_write(4095)
+    time.sleep(3)
