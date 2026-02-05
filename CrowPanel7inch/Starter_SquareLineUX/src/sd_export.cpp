@@ -5,6 +5,7 @@
 #include <lvgl.h>
 
 #include "sd_export.h"
+#include "data_model.h"
 
 
 // DIS08070H microSD (TF) SPI pins (we'll verify/adjust if needed)
@@ -210,7 +211,10 @@ bool sd_export_all_graphs_combined_csv(const char* name_raw, const char* date_ra
                                        lv_obj_t* current_chart,
                                        lv_obj_t* temperatures_chart)
 {
-  static constexpr uint32_t SAMPLE_PERIOD_SECONDS = 60;
+  (void)battery_chart;
+  (void)shunt_chart;
+  (void)current_chart;
+  (void)temperatures_chart;
 
   if (!name_raw || !date_raw) return false;
 
@@ -234,81 +238,28 @@ bool sd_export_all_graphs_combined_csv(const char* name_raw, const char* date_ra
     return false;
   }
 
-  struct ChartInfo {
-    const char* label;
-    lv_obj_t* chart;
-  };
-
-  ChartInfo charts[] = {
-    {"TestBattery", battery_chart},
-    {"Shunt", shunt_chart},
-    {"AuxCurrent", current_chart},
-    {"Temp", temperatures_chart},
-  };
-
-  struct SeriesCol {
-    char label[40];
-    const lv_coord_t* y;
-    uint16_t point_count;
-  };
-
-  static constexpr uint16_t MAX_COLS = 16;
-  SeriesCol cols[MAX_COLS];
-  uint16_t col_count = 0;
-  uint16_t max_points = 0;
-
-  for (uint16_t c = 0; c < (uint16_t)(sizeof(charts) / sizeof(charts[0])); c++) {
-    lv_obj_t* chart = charts[c].chart;
-    if (!chart) continue;
-
-    uint16_t n = lv_chart_get_point_count(chart);
-    if (n > max_points) max_points = n;
-
-    lv_chart_series_t* series = NULL;
-    uint16_t series_idx = 0;
-
-    while ((series = lv_chart_get_series_next(chart, series)) != NULL) {
-      if (col_count >= MAX_COLS) break;
-
-      snprintf(cols[col_count].label, sizeof(cols[col_count].label),
-               "%s_s%u", charts[c].label, (unsigned)(series_idx + 1U));
-      cols[col_count].y = lv_chart_get_y_array(chart, series);
-      cols[col_count].point_count = n;
-
-      col_count++;
-      series_idx++;
-    }
-  }
-
-  if (col_count == 0 || max_points == 0) {
+  const size_t count = dm_size();
+  if (count == 0) {
     f.close();
-    Serial.println("No chart data found for combined CSV export");
+    Serial.println("No buffered data found for combined CSV export");
     return false;
   }
 
-  f.print("index,t_s");
-  for (uint16_t i = 0; i < col_count; i++) {
-    f.print(",");
-    f.print(cols[i].label);
-  }
-  f.println();
+  f.println("index,t_s,TestBattery_s1,TestBattery_s2,Shunt_s1,AuxCurrent_s1,Temp_s1,Temp_s2");
 
-  for (uint16_t row = 0; row < max_points; row++) {
-    f.print((unsigned)row);
-    f.print(",");
-    f.print((unsigned long)(row * SAMPLE_PERIOD_SECONDS));
+  for (size_t i = 0; i < count; i++) {
+    Sample s{};
+    if (!dm_get_oldest(i, s)) continue;
 
-    for (uint16_t col = 0; col < col_count; col++) {
-      f.print(",");
-
-      if (!cols[col].y) continue;
-      if (row >= cols[col].point_count) continue;
-      if (cols[col].y[row] == LV_CHART_POINT_NONE) continue;
-
-      f.print((int)cols[col].y[row]);
-    }
-
-    f.println();
+    f.printf("%u,%lu,%d,%d,%d,%d,%d,%d\n",
+             (unsigned)i,
+             (unsigned long)s.t_s,
+             (int)s.testBattery_s1,
+             (int)s.testBattery_s2,
+             (int)s.shunt_s1,
+             (int)s.auxCurrent_s1,
+             (int)s.temperatures_s1,
+             (int)s.temperatures_s2);
   }
 
   f.close();

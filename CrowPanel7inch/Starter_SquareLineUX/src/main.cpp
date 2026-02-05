@@ -10,12 +10,43 @@
 #include "screens/ui_Screen1.h"
 
 #include "sd_export.h"
+#include "data_model.h"
 
 
 // ----------------------------------------------------
 // Globals
 // ----------------------------------------------------
 static bool g_sd_ok = false; // track whether SD card mounted successfully
+static uint32_t g_last_sample_ms = 0;
+
+static lv_chart_series_t* chart_series_by_index(lv_obj_t* chart, uint16_t idx)
+{
+  if (!chart) return NULL;
+
+  lv_chart_series_t* series = NULL;
+  for (uint16_t i = 0; i <= idx; i++) {
+    series = lv_chart_get_series_next(chart, series);
+    if (!series) return NULL;
+  }
+  return series;
+}
+
+static int16_t chart_latest_value(lv_obj_t* chart, uint16_t series_idx)
+{
+  lv_chart_series_t* series = chart_series_by_index(chart, series_idx);
+  if (!series) return 0;
+
+  uint16_t n = lv_chart_get_point_count(chart);
+  if (n == 0) return 0;
+
+  const lv_coord_t* y = lv_chart_get_y_array(chart, series);
+  if (!y) return 0;
+
+  for (int i = (int)n - 1; i >= 0; --i) {
+    if (y[i] != LV_CHART_POINT_NONE) return (int16_t)y[i];
+  }
+  return 0;
+}
 
 // ----------------------------------------------------
 // Export button callback
@@ -105,6 +136,8 @@ void setup()
 
   // UI init (SquareLine)
   ui_init();
+  dm_init();
+  g_last_sample_ms = millis();
 
   // SD init
   g_sd_ok = sd_init();
@@ -129,6 +162,23 @@ void setup()
 void loop()
 {
   lv_timer_handler();
+
+  const uint32_t now = millis();
+  if ((now - g_last_sample_ms) >= 60000UL)
+  {
+    g_last_sample_ms = now;
+
+    Sample s{};
+    s.t_s = now / 1000UL;
+    s.testBattery_s1 = chart_latest_value(ui_Chart2, 0);
+    s.testBattery_s2 = chart_latest_value(ui_Chart2, 1);
+    s.shunt_s1 = chart_latest_value(ui_Chart6, 0);
+    s.auxCurrent_s1 = chart_latest_value(ui_Chart1, 0);
+    s.temperatures_s1 = chart_latest_value(ui_Chart3, 0);
+    s.temperatures_s2 = chart_latest_value(ui_Chart3, 1);
+
+    dm_push(s);
+  }
 
   while (Serial1.available())
   {
