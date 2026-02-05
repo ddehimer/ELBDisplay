@@ -116,7 +116,7 @@ void ui_Screen1_screen_init(void)
     lv_chart_set_axis_tick(ui_Chart6, LV_CHART_AXIS_SECONDARY_Y, 10, 5, 5, 2, true, 25);
     lv_chart_series_t * ui_Chart6_series_1 = lv_chart_add_series(ui_Chart6, lv_color_hex(0xE610E2),
                                                                  LV_CHART_AXIS_PRIMARY_Y);
-    static lv_coord_t ui_Chart6_series_1_array[] = { 0, 0, 0, 5, 7, 10, 20, 40, 80, 200 };
+    static lv_coord_t ui_Chart6_series_1_array[] = { 0, 10, 20, 30, 40, 50, 60, 70, 80, 90 };
     lv_chart_set_ext_y_array(ui_Chart6, ui_Chart6_series_1, ui_Chart6_series_1_array);
 
     ui_Label6 = lv_label_create(ui_Main);
