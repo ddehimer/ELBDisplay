@@ -4,6 +4,8 @@
 
 #include <SPI.h>
 #include <Adafruit_GFX.h>
+#include <stdio.h>
+#include <stdarg.h>
 
 #include "lgfx/lgfx.h"
 #include "ui.h"
@@ -18,6 +20,96 @@
 // ----------------------------------------------------
 static bool g_sd_ok = false; // track whether SD card mounted successfully
 static uint32_t g_last_sample_ms = 0;
+static uint32_t g_boot_ms = 0;
+static bool g_sd_status_printed = false;
+
+// Latest UART data (RP2040) for ring buffer sampling
+static bool g_has_uart_sample = false;
+static int16_t g_last_tb1 = 0;
+static int16_t g_last_tb2 = 0;
+static int16_t g_last_shunt = 0;
+static int16_t g_last_aux = 0;
+static int16_t g_last_t1 = 0;
+static int16_t g_last_t2 = 0;
+
+// ----------------------------------------------------
+// UART data parser (RP2040 -> ESP32)
+// Expected line: DATA,<tb1>,<tb2>,<shunt>,<aux>,<t1>,<t2>\n
+// ----------------------------------------------------
+static constexpr size_t UART_LINE_MAX = 96;
+static char g_uart_line[UART_LINE_MAX];
+static size_t g_uart_len = 0;
+
+static lv_chart_series_t* chart_series_by_index(lv_obj_t* chart, uint16_t idx);
+
+static void diag_line(const char* msg)
+{
+  Serial.println(msg);
+}
+
+static void diag_printf(const char* fmt, ...)
+{
+  char buf[160];
+  va_list args;
+  va_start(args, fmt);
+  vsnprintf(buf, sizeof(buf), fmt, args);
+  va_end(args);
+  Serial.print(buf);
+}
+
+static void chart_push_value(lv_obj_t* chart, uint16_t series_idx, int16_t v)
+{
+  lv_chart_series_t* series = chart_series_by_index(chart, series_idx);
+  if (!series) return;
+  lv_chart_set_next_value(chart, series, v);
+}
+
+static bool parse_data_line(const char* line,
+                            int16_t& tb1, int16_t& tb2, int16_t& shunt,
+                            int16_t& aux, int16_t& t1, int16_t& t2)
+{
+  if (!line) return false;
+  if (strncmp(line, "DATA,", 5) != 0) return false;
+
+  int v1, v2, v3, v4, v5, v6;
+  if (sscanf(line + 5, "%d,%d,%d,%d,%d,%d", &v1, &v2, &v3, &v4, &v5, &v6) != 6)
+    return false;
+
+  tb1 = (int16_t)v1;
+  tb2 = (int16_t)v2;
+  shunt = (int16_t)v3;
+  aux = (int16_t)v4;
+  t1 = (int16_t)v5;
+  t2 = (int16_t)v6;
+  return true;
+}
+
+static void handle_uart_line(const char* line)
+{
+  int16_t tb1, tb2, shunt, aux, t1, t2;
+  if (!parse_data_line(line, tb1, tb2, shunt, aux, t1, t2)) return;
+
+  // Update latest UART sample for ring buffer
+  g_last_tb1 = tb1;
+  g_last_tb2 = tb2;
+  g_last_shunt = shunt;
+  g_last_aux = aux;
+  g_last_t1 = t1;
+  g_last_t2 = t2;
+  g_has_uart_sample = true;
+
+  chart_push_value(ui_Chart2, 0, tb1);
+  chart_push_value(ui_Chart2, 1, tb2);
+  chart_push_value(ui_Chart6, 0, shunt);
+  chart_push_value(ui_Chart1, 0, aux);
+  chart_push_value(ui_Chart3, 0, t1);
+  chart_push_value(ui_Chart3, 1, t2);
+
+  lv_chart_refresh(ui_Chart2);
+  lv_chart_refresh(ui_Chart6);
+  lv_chart_refresh(ui_Chart1);
+  lv_chart_refresh(ui_Chart3);
+}
 
 static lv_chart_series_t* chart_series_by_index(lv_obj_t* chart, uint16_t idx)
 {
@@ -29,6 +121,18 @@ static lv_chart_series_t* chart_series_by_index(lv_obj_t* chart, uint16_t idx)
     if (!series) return NULL;
   }
   return series;
+}
+
+static void chart_clear_all(lv_obj_t* chart)
+{
+  if (!chart) return;
+
+  lv_chart_series_t* series = NULL;
+  while ((series = lv_chart_get_series_next(chart, series)) != NULL)
+  {
+    lv_chart_set_all_value(chart, series, LV_CHART_POINT_NONE);
+  }
+  lv_chart_refresh(chart);
 }
 
 static int16_t chart_latest_value(lv_obj_t* chart, uint16_t series_idx)
@@ -120,16 +224,16 @@ void setup()
 
   Serial.begin(115200);
   delay(2000);
-  Serial.println("ESP32 ready");
-  Serial.println("Running setup...");
+  diag_line("ESP32 ready");
+  diag_line("Running setup...");
 
   Serial1.begin(
     115200,
     SERIAL_8N1,
-    16,
-    17
+    44,
+    43
   );
-  Serial.println("UART1 ready");
+  diag_line("UART1 ready");
 
   // Display/LVGL init (touch too)
   lcd.setup();
@@ -139,9 +243,16 @@ void setup()
   dm_init();
   g_last_sample_ms = millis();
 
+  // Clear chart placeholders so UART data is the only visible source
+  chart_clear_all(ui_Chart2);
+  chart_clear_all(ui_Chart6);
+  chart_clear_all(ui_Chart1);
+  chart_clear_all(ui_Chart3);
+
   // SD init
   g_sd_ok = sd_init();
-  Serial.printf("SD status: %s\n", g_sd_ok ? "OK" : "NOT OK");
+  diag_printf("SD status: %s\n", g_sd_ok ? "OK" : "NOT OK");
+  Serial.flush();
 
   // -----------------------------
   // Keyboard setup
@@ -157,25 +268,37 @@ void setup()
   lv_obj_add_event_cb(ui_Button1, export_event_cb, LV_EVENT_CLICKED, NULL);
 
   lv_timer_handler();
+
+  g_boot_ms = millis();
+  g_sd_status_printed = false;
 }
 
 void loop()
 {
   lv_timer_handler();
 
+  if (!g_sd_status_printed && (millis() - g_boot_ms) >= 3000UL)
+  {
+    diag_printf("SD status (delayed): %s\n", g_sd_ok ? "OK" : "NOT OK");
+    g_sd_status_printed = true;
+  }
+
   const uint32_t now = millis();
-  if ((now - g_last_sample_ms) >= 60000UL)
+  if ((now - g_last_sample_ms) >= 5000UL)
   {
     g_last_sample_ms = now;
 
     Sample s{};
     s.t_s = now / 1000UL;
-    s.testBattery_s1 = chart_latest_value(ui_Chart2, 0);
-    s.testBattery_s2 = chart_latest_value(ui_Chart2, 1);
-    s.shunt_s1 = chart_latest_value(ui_Chart6, 0);
-    s.auxCurrent_s1 = chart_latest_value(ui_Chart1, 0);
-    s.temperatures_s1 = chart_latest_value(ui_Chart3, 0);
-    s.temperatures_s2 = chart_latest_value(ui_Chart3, 1);
+    if (g_has_uart_sample)
+    {
+      s.testBattery_s1 = g_last_tb1;
+      s.testBattery_s2 = g_last_tb2;
+      s.shunt_s1 = g_last_shunt;
+      s.auxCurrent_s1 = g_last_aux;
+      s.temperatures_s1 = g_last_t1;
+      s.temperatures_s2 = g_last_t2;
+    }
 
     dm_push(s);
   }
@@ -183,7 +306,25 @@ void loop()
   while (Serial1.available())
   {
     char c = Serial1.read();
-    Serial.write(c);
+    if (c == '\r') continue;
+
+    if (c == '\n')
+    {
+      g_uart_line[g_uart_len] = '\0';
+      handle_uart_line(g_uart_line);
+      g_uart_len = 0;
+      continue;
+    }
+
+    if (g_uart_len < (UART_LINE_MAX - 1))
+    {
+      g_uart_line[g_uart_len++] = c;
+    }
+    else
+    {
+      // Line too long, reset buffer
+      g_uart_len = 0;
+    }
   }
 
   delay(5);
