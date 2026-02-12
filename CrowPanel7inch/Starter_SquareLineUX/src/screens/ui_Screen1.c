@@ -33,6 +33,9 @@ lv_obj_t * ui_Label9 = NULL;
 lv_obj_t * ui_Label10 = NULL;
 lv_obj_t * ui_Label11 = NULL;
 lv_obj_t * ui_File_Storage = NULL;
+lv_obj_t * ui_SDReminder = NULL;
+lv_obj_t * ui_SDCardStatus = NULL;
+lv_obj_t * ui_ExportStatus = NULL;
 lv_obj_t * ui_File_Name = NULL;
 lv_obj_t * ui_Date = NULL;
 lv_obj_t * ui_Button1 = NULL;
@@ -263,8 +266,29 @@ void ui_Screen1_screen_init(void)
 
     ui_File_Storage = lv_tabview_add_tab(ui_TabView1, "File Storage");
 
+    ui_SDReminder = lv_label_create(ui_File_Storage);
+    lv_obj_set_width(ui_SDReminder, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_SDReminder, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_SDReminder, 100);
+    lv_obj_set_y(ui_SDReminder, 375);
+    lv_label_set_text(ui_SDReminder, "Reminder: Please \"eject media\" before removing SD card from the computer!");
+
+    ui_SDCardStatus = lv_label_create(ui_File_Storage);
+    lv_obj_set_width(ui_SDCardStatus, LV_SIZE_CONTENT);   /// 10
+    lv_obj_set_height(ui_SDCardStatus, LV_SIZE_CONTENT);    /// 10
+    lv_obj_set_x(ui_SDCardStatus, 500);
+    lv_obj_set_y(ui_SDCardStatus, 30);
+    lv_label_set_text(ui_SDCardStatus, "SD Card Status: Checking...");
+
+    ui_ExportStatus = lv_label_create(ui_File_Storage);
+    lv_obj_set_width(ui_ExportStatus, LV_SIZE_CONTENT);   /// 10
+    lv_obj_set_height(ui_ExportStatus, LV_SIZE_CONTENT);    /// 10
+    lv_obj_set_x(ui_ExportStatus, 500);
+    lv_obj_set_y(ui_ExportStatus, 110);
+    lv_label_set_text(ui_ExportStatus, "Export Status: Idle");
+
     ui_File_Name = lv_textarea_create(ui_File_Storage);
-    lv_obj_set_width(ui_File_Name, 700);
+    lv_obj_set_width(ui_File_Name, 350);
     lv_obj_set_height(ui_File_Name, LV_SIZE_CONTENT);    /// 50
     lv_obj_set_x(ui_File_Name, 30);
     lv_obj_set_y(ui_File_Name, 20);
@@ -272,7 +296,7 @@ void ui_Screen1_screen_init(void)
     lv_textarea_set_one_line(ui_File_Name, true);
 
     ui_Date = lv_textarea_create(ui_File_Storage);
-    lv_obj_set_width(ui_Date, 700);
+    lv_obj_set_width(ui_Date, 350);
     lv_obj_set_height(ui_Date, LV_SIZE_CONTENT);    /// 50
     lv_obj_set_x(ui_Date, 30);
     lv_obj_set_y(ui_Date, 100);
@@ -282,8 +306,8 @@ void ui_Screen1_screen_init(void)
     ui_Button1 = lv_btn_create(ui_File_Storage);
     lv_obj_set_width(ui_Button1, 200);
     lv_obj_set_height(ui_Button1, 50);
-    lv_obj_set_x(ui_Button1, 300);
-    lv_obj_set_y(ui_Button1, 300);
+    lv_obj_set_x(ui_Button1, 105);
+    lv_obj_set_y(ui_Button1, 200);
     lv_obj_add_flag(ui_Button1, LV_OBJ_FLAG_SCROLL_ON_FOCUS);     /// Flags
     lv_obj_clear_flag(ui_Button1, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
     lv_obj_set_style_text_color(ui_Button1, lv_color_hex(0x030303), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -292,9 +316,9 @@ void ui_Screen1_screen_init(void)
     ui_Label14 = lv_label_create(ui_File_Storage);
     lv_obj_set_width(ui_Label14, LV_SIZE_CONTENT);   /// 1
     lv_obj_set_height(ui_Label14, LV_SIZE_CONTENT);    /// 1
-    lv_obj_set_x(ui_Label14, 375);
-    lv_obj_set_y(ui_Label14, 315);
-    lv_label_set_text(ui_Label14, "Export!");
+    lv_obj_set_x(ui_Label14, 160);
+    lv_obj_set_y(ui_Label14, 217);
+    lv_label_set_text(ui_Label14, ".CSV Export!");
     lv_obj_set_style_text_color(ui_Label14, lv_color_hex(0xF6F6F6), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_Label14, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
@@ -346,6 +370,9 @@ void ui_Screen1_screen_destroy(void)
     ui_Label10 = NULL;
     ui_Label11 = NULL;
     ui_File_Storage = NULL;
+    ui_SDReminder = NULL;
+    ui_SDCardStatus = NULL;
+    ui_ExportStatus = NULL;
     ui_File_Name = NULL;
     ui_Date = NULL;
     ui_Button1 = NULL;

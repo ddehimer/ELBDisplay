@@ -22,6 +22,8 @@ static bool g_sd_ok = false; // track whether SD card mounted successfully
 static uint32_t g_last_sample_ms = 0;
 static uint32_t g_boot_ms = 0;
 static bool g_sd_status_printed = false;
+static uint32_t g_last_sd_poll_ms = 0;
+static uint32_t g_export_status_reset_ms = 0;
 
 // Latest UART data (RP2040) for ring buffer sampling
 static bool g_has_uart_sample = false;
@@ -55,6 +57,44 @@ static void diag_printf(const char* fmt, ...)
   vsnprintf(buf, sizeof(buf), fmt, args);
   va_end(args);
   Serial.print(buf);
+}
+
+static void ui_set_status_label(lv_obj_t* label, const char* text, lv_color_t color)
+{
+  if (!label || !text) return;
+  lv_label_set_text(label, text);
+  lv_obj_set_style_text_color(label, color, LV_PART_MAIN | LV_STATE_DEFAULT);
+}
+
+static void ui_set_sd_status(bool ready)
+{
+  if (ready) {
+    ui_set_status_label(ui_SDCardStatus, "SD Card Status: Ready", lv_palette_main(LV_PALETTE_GREEN));
+  } else {
+    ui_set_status_label(ui_SDCardStatus, "SD Card Status: Not Ready", lv_palette_main(LV_PALETTE_RED));
+  }
+}
+
+static void ui_set_export_status_idle()
+{
+  ui_set_status_label(ui_ExportStatus, "Export Status: Idle", lv_palette_main(LV_PALETTE_GREY));
+}
+
+static void ui_set_export_status_ok()
+{
+  ui_set_status_label(ui_ExportStatus, "Export Status: Success", lv_palette_main(LV_PALETTE_GREEN));
+}
+
+static void ui_set_export_status_error(const char* reason)
+{
+  char buf[96];
+  snprintf(buf, sizeof(buf), "Export Status: %s", reason ? reason : "Failed");
+  ui_set_status_label(ui_ExportStatus, buf, lv_palette_main(LV_PALETTE_RED));
+}
+
+static void ui_schedule_export_status_idle(uint32_t now_ms)
+{
+  g_export_status_reset_ms = now_ms + 10000UL;
 }
 
 static void chart_push_value(lv_obj_t* chart, uint16_t series_idx, int16_t v)
@@ -158,37 +198,51 @@ static int16_t chart_latest_value(lv_obj_t* chart, uint16_t series_idx)
 static void export_event_cb(lv_event_t* e)
 {
   if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
+  const uint32_t now_ms = millis();
 
   const char* name = lv_textarea_get_text(ui_File_Name);
   const char* date = lv_textarea_get_text(ui_Date);
 
   if (!g_sd_ok)
   {
-    Serial.println("❌ Export blocked: SD not mounted / not detected.");
+    Serial.println("Export blocked: SD not mounted / not detected.");
+    ui_set_export_status_error("No SD Card");
+    ui_schedule_export_status_idle(now_ms);
     return;
   }
 
   if (!name || name[0] == '\0')
   {
-    Serial.println("❌ Enter a file name before exporting.");
+    Serial.println("Enter a file name before exporting.");
+    ui_set_export_status_error("Enter File Name");
+    ui_schedule_export_status_idle(now_ms);
     return;
   }
 
   if (!date || date[0] == '\0')
   {
-    Serial.println("❌ Enter a date before exporting.");
+    Serial.println("Enter a date before exporting.");
+    ui_set_export_status_error("Enter Date");
+    ui_schedule_export_status_idle(now_ms);
     return;
   }
 
-  bool ok = sd_export_all_graphs_combined_csv(name, date,
-                                               ui_Chart2,
-                                               ui_Chart6,
-                                               ui_Chart1,
-                                               ui_Chart3);
+  bool ok = sd_export_combined_csv(name, date,
+                                   ui_Chart2,
+                                   ui_Chart6,
+                                   ui_Chart1,
+                                   ui_Chart3);
 
 
-  if (ok) Serial.println("✅ Export success (CSV written to SD).");
-  else    Serial.println("❌ Export failed.");
+  if (ok) {
+    Serial.println("Export success (CSV written to SD).");
+    ui_set_export_status_ok();
+    ui_schedule_export_status_idle(now_ms);
+  } else {
+    Serial.println("Export failed.");
+    ui_set_export_status_error("Failed");
+    ui_schedule_export_status_idle(now_ms);
+  }
 }
 
 // ----------------------------------------------------
@@ -250,7 +304,11 @@ void setup()
   chart_clear_all(ui_Chart3);
 
   // SD init
+  ui_set_status_label(ui_SDCardStatus, "SD Card Status: Checking...", lv_palette_main(LV_PALETTE_ORANGE));
   g_sd_ok = sd_init();
+  ui_set_sd_status(g_sd_ok);
+  ui_set_export_status_idle();
+  g_export_status_reset_ms = 0;
   diag_printf("SD status: %s\n", g_sd_ok ? "OK" : "NOT OK");
   Serial.flush();
 
@@ -270,12 +328,37 @@ void setup()
   lv_timer_handler();
 
   g_boot_ms = millis();
+  g_last_sd_poll_ms = g_boot_ms;
   g_sd_status_printed = false;
 }
 
 void loop()
 {
   lv_timer_handler();
+  const uint32_t now = millis();
+
+  if ((now - g_last_sd_poll_ms) >= 1000UL)
+  {
+    g_last_sd_poll_ms = now;
+    const bool sd_now_ok = sd_is_ready();
+    if (sd_now_ok != g_sd_ok)
+    {
+      g_sd_ok = sd_now_ok;
+      ui_set_sd_status(g_sd_ok);
+      if (!g_sd_ok) {
+        ui_set_export_status_error("No SD Card");
+        ui_schedule_export_status_idle(now);
+      }
+      diag_printf("SD status changed: %s\n", g_sd_ok ? "OK" : "NOT OK");
+    }
+  }
+
+  if (g_export_status_reset_ms != 0 &&
+      (int32_t)(now - g_export_status_reset_ms) >= 0)
+  {
+    ui_set_export_status_idle();
+    g_export_status_reset_ms = 0;
+  }
 
   if (!g_sd_status_printed && (millis() - g_boot_ms) >= 3000UL)
   {
@@ -283,7 +366,6 @@ void loop()
     g_sd_status_printed = true;
   }
 
-  const uint32_t now = millis();
   if ((now - g_last_sample_ms) >= 5000UL)
   {
     g_last_sample_ms = now;
@@ -329,3 +411,4 @@ void loop()
 
   delay(5);
 }
+
