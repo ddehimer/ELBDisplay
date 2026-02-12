@@ -10,7 +10,7 @@ class HeatsinkTemp:
         i2c,
         ads_addr=0x4A,
         r_fixed=4990.0,
-        v_supply=4.3,
+        v_supply=5,
         r0=12000.0,
         t0=298.15,
         beta=3950.0
