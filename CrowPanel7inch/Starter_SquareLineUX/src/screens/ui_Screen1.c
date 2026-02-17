@@ -12,27 +12,36 @@ lv_obj_t * ui_Screen1 = NULL;
 lv_obj_t * ui_TabView1 = NULL;
 lv_obj_t * ui_Main = NULL;
 lv_obj_t * ui_Chart2 = NULL;
-lv_obj_t * ui_Label1 = NULL;
+lv_obj_t * ui_TestBatteryVoltage = NULL;
+lv_obj_t * ui_TBVvalue = NULL;
+lv_obj_t * ui_TestBatteryCurrent = NULL;
+lv_obj_t * ui_TBCvalue = NULL;
 lv_obj_t * ui_Label3 = NULL;
 lv_obj_t * ui_Label4 = NULL;
 lv_obj_t * ui_Chart6 = NULL;
 lv_obj_t * ui_Label6 = NULL;
-lv_obj_t * ui_Label2 = NULL;
+lv_obj_t * ui_Power = NULL;
+lv_obj_t * ui_Pvalue = NULL;
 lv_obj_t * ui_Current = NULL;
 lv_obj_t * ui_Chart1 = NULL;
 lv_obj_t * ui_Label15 = NULL;
-lv_obj_t * ui_Label7 = NULL;
+lv_obj_t * ui_AuxillaryBattery = NULL;
+lv_obj_t * ui_ABvalue = NULL;
 lv_obj_t * ui_Bar2 = NULL;
-lv_obj_t * ui_Label12 = NULL;
-lv_obj_t * ui_Label13 = NULL;
+lv_obj_t * ui_Potentiometer = NULL;
+lv_obj_t * ui_Potvalue = NULL;
 lv_obj_t * ui_Temperatures = NULL;
 lv_obj_t * ui_Chart3 = NULL;
-lv_obj_t * ui_Label8 = NULL;
-lv_obj_t * ui_Label5 = NULL;
-lv_obj_t * ui_Label9 = NULL;
+lv_obj_t * ui_HeatsinkTemp = NULL;
+lv_obj_t * ui_HSTvalue = NULL;
+lv_obj_t * ui_TestBatteryTemp = NULL;
+lv_obj_t * ui_TBTvalue = NULL;
 lv_obj_t * ui_Label10 = NULL;
 lv_obj_t * ui_Label11 = NULL;
 lv_obj_t * ui_File_Storage = NULL;
+lv_obj_t * ui_SDReminder = NULL;
+lv_obj_t * ui_SDCardStatus = NULL;
+lv_obj_t * ui_ExportStatus = NULL;
 lv_obj_t * ui_File_Name = NULL;
 lv_obj_t * ui_Date = NULL;
 lv_obj_t * ui_Button1 = NULL;
@@ -71,17 +80,46 @@ void ui_Screen1_screen_init(void)
                                                                  LV_CHART_AXIS_PRIMARY_Y);
     static lv_coord_t ui_Chart2_series_1_array[] = { 12, 12, 11, 11, 10, 10, 9, 9, 8, 0 };
     lv_chart_set_ext_y_array(ui_Chart2, ui_Chart2_series_1, ui_Chart2_series_1_array);
-    lv_chart_series_t * ui_Chart2_series_2 = lv_chart_add_series(ui_Chart2, lv_color_hex(0xEF3A16),
+    lv_chart_series_t * ui_Chart2_series_2 = lv_chart_add_series(ui_Chart2, lv_color_hex(0x1879D5),
                                                                  LV_CHART_AXIS_SECONDARY_Y);
     static lv_coord_t ui_Chart2_series_2_array[] = { 0, 1, 5, 5, 5, 5, 5, 5, 5, 5, 5 };
     lv_chart_set_ext_y_array(ui_Chart2, ui_Chart2_series_2, ui_Chart2_series_2_array);
 
-    ui_Label1 = lv_label_create(ui_Main);
-    lv_obj_set_width(ui_Label1, LV_SIZE_CONTENT);   /// 1
-    lv_obj_set_height(ui_Label1, LV_SIZE_CONTENT);    /// 1
-    lv_obj_set_x(ui_Label1, 335);
-    lv_obj_set_y(ui_Label1, -10);
-    lv_label_set_text(ui_Label1, "Test Battery");
+    ui_TestBatteryVoltage = lv_label_create(ui_Main);
+    lv_obj_set_width(ui_TestBatteryVoltage, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_TestBatteryVoltage, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_TestBatteryVoltage, 132);
+    lv_obj_set_y(ui_TestBatteryVoltage, -10);
+    lv_label_set_text(ui_TestBatteryVoltage, "Test Battery Voltage:");
+    lv_obj_set_style_text_color(ui_TestBatteryVoltage, lv_color_hex(0x39C230), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_TestBatteryVoltage, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_TBVvalue = lv_label_create(ui_Main);
+    lv_obj_set_width(ui_TBVvalue, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_TBVvalue, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_TBVvalue, 295);
+    lv_obj_set_y(ui_TBVvalue, -10);
+    lv_label_set_text(ui_TBVvalue, "x");
+    lv_obj_set_style_text_color(ui_TBVvalue, lv_color_hex(0x46C63E), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_TBVvalue, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_TestBatteryCurrent = lv_label_create(ui_Main);
+    lv_obj_set_width(ui_TestBatteryCurrent, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_TestBatteryCurrent, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_TestBatteryCurrent, 470);
+    lv_obj_set_y(ui_TestBatteryCurrent, -10);
+    lv_label_set_text(ui_TestBatteryCurrent, "Test Battery Current:");
+    lv_obj_set_style_text_color(ui_TestBatteryCurrent, lv_color_hex(0x1879D5), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_TestBatteryCurrent, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_TBCvalue = lv_label_create(ui_Main);
+    lv_obj_set_width(ui_TBCvalue, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_TBCvalue, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_TBCvalue, 635);
+    lv_obj_set_y(ui_TBCvalue, -10);
+    lv_label_set_text(ui_TBCvalue, "x");
+    lv_obj_set_style_text_color(ui_TBCvalue, lv_color_hex(0x1879D5), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_TBCvalue, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_Label3 = lv_label_create(ui_Main);
     lv_obj_set_width(ui_Label3, LV_SIZE_CONTENT);   /// 1
@@ -100,7 +138,7 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_y(ui_Label4, -10);
     lv_label_set_text(ui_Label4, "A");
     lv_label_set_recolor(ui_Label4, "true");
-    lv_obj_set_style_text_color(ui_Label4, lv_color_hex(0xEE2800), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_color(ui_Label4, lv_color_hex(0x1879D5), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_Label4, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_Chart6 = lv_chart_create(ui_Main);
@@ -124,17 +162,28 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_height(ui_Label6, LV_SIZE_CONTENT);    /// 1
     lv_obj_set_x(ui_Label6, 740);
     lv_obj_set_y(ui_Label6, 205);
-    lv_label_set_text(ui_Label6, "A");
+    lv_label_set_text(ui_Label6, "W");
     lv_label_set_recolor(ui_Label6, "true");
     lv_obj_set_style_text_color(ui_Label6, lv_color_hex(0xE610E6), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_Label6, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    ui_Label2 = lv_label_create(ui_Main);
-    lv_obj_set_width(ui_Label2, LV_SIZE_CONTENT);   /// 1
-    lv_obj_set_height(ui_Label2, LV_SIZE_CONTENT);    /// 1
-    lv_obj_set_x(ui_Label2, 355);
-    lv_obj_set_y(ui_Label2, 205);
-    lv_label_set_text(ui_Label2, "Shunt");
+    ui_Power = lv_label_create(ui_Main);
+    lv_obj_set_width(ui_Power, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_Power, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_Power, 355);
+    lv_obj_set_y(ui_Power, 205);
+    lv_label_set_text(ui_Power, "Power:");
+    lv_obj_set_style_text_color(ui_Power, lv_color_hex(0xE612E6), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_Power, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_Pvalue = lv_label_create(ui_Main);
+    lv_obj_set_width(ui_Pvalue, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_Pvalue, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_Pvalue, 420);
+    lv_obj_set_y(ui_Pvalue, 205);
+    lv_label_set_text(ui_Pvalue, "x");
+    lv_obj_set_style_text_color(ui_Pvalue, lv_color_hex(0xE610E6), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_Pvalue, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_Current = lv_tabview_add_tab(ui_TabView1, "Current");
 
@@ -163,14 +212,23 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_style_text_color(ui_Label15, lv_color_hex(0x1879D5), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_Label15, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    ui_Label7 = lv_label_create(ui_Current);
-    lv_obj_set_width(ui_Label7, LV_SIZE_CONTENT);   /// 1
-    lv_obj_set_height(ui_Label7, LV_SIZE_CONTENT);    /// 1
-    lv_obj_set_x(ui_Label7, 315);
-    lv_obj_set_y(ui_Label7, 0);
-    lv_label_set_text(ui_Label7, "Auxiliary Battery");
-    lv_obj_set_style_text_color(ui_Label7, lv_color_hex(0x1879D5), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_opa(ui_Label7, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    ui_AuxillaryBattery = lv_label_create(ui_Current);
+    lv_obj_set_width(ui_AuxillaryBattery, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_AuxillaryBattery, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_AuxillaryBattery, 315);
+    lv_obj_set_y(ui_AuxillaryBattery, 0);
+    lv_label_set_text(ui_AuxillaryBattery, "Auxiliary Battery:");
+    lv_obj_set_style_text_color(ui_AuxillaryBattery, lv_color_hex(0x1879D5), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_AuxillaryBattery, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_ABvalue = lv_label_create(ui_Current);
+    lv_obj_set_width(ui_ABvalue, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_ABvalue, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_ABvalue, 460);
+    lv_obj_set_y(ui_ABvalue, 0);
+    lv_label_set_text(ui_ABvalue, "x");
+    lv_obj_set_style_text_color(ui_ABvalue, lv_color_hex(0x1879D5), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_ABvalue, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_Bar2 = lv_bar_create(ui_Current);
     lv_bar_set_range(ui_Bar2, 0, 20);
@@ -181,19 +239,23 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_x(ui_Bar2, 250);
     lv_obj_set_y(ui_Bar2, 275);
 
-    ui_Label12 = lv_label_create(ui_Current);
-    lv_obj_set_width(ui_Label12, LV_SIZE_CONTENT);   /// 1
-    lv_obj_set_height(ui_Label12, LV_SIZE_CONTENT);    /// 1
-    lv_obj_set_x(ui_Label12, 295);
-    lv_obj_set_y(ui_Label12, 250);
-    lv_label_set_text(ui_Label12, "Potentiometer (A) -");
+    ui_Potentiometer = lv_label_create(ui_Current);
+    lv_obj_set_width(ui_Potentiometer, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_Potentiometer, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_Potentiometer, 295);
+    lv_obj_set_y(ui_Potentiometer, 250);
+    lv_label_set_text(ui_Potentiometer, "Potentiometer (A) -");
+    lv_obj_set_style_text_color(ui_Potentiometer, lv_color_hex(0x1879D5), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_Potentiometer, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    ui_Label13 = lv_label_create(ui_Current);
-    lv_obj_set_width(ui_Label13, LV_SIZE_CONTENT);   /// 1
-    lv_obj_set_height(ui_Label13, LV_SIZE_CONTENT);    /// 1
-    lv_obj_set_x(ui_Label13, 445);
-    lv_obj_set_y(ui_Label13, 250);
-    lv_label_set_text(ui_Label13, "12");
+    ui_Potvalue = lv_label_create(ui_Current);
+    lv_obj_set_width(ui_Potvalue, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_Potvalue, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_Potvalue, 445);
+    lv_obj_set_y(ui_Potvalue, 250);
+    lv_label_set_text(ui_Potvalue, "x");
+    lv_obj_set_style_text_color(ui_Potvalue, lv_color_hex(0x1879D5), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_Potvalue, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_Temperatures = lv_tabview_add_tab(ui_TabView1, "Temperatures");
 
@@ -203,52 +265,63 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_x(ui_Chart3, 30);
     lv_obj_set_y(ui_Chart3, 20);
     lv_chart_set_type(ui_Chart3, LV_CHART_TYPE_LINE);
-    lv_chart_set_range(ui_Chart3, LV_CHART_AXIS_PRIMARY_Y, 0, 200);
+    lv_chart_set_range(ui_Chart3, LV_CHART_AXIS_SECONDARY_Y, 0, 50);
     lv_chart_set_axis_tick(ui_Chart3, LV_CHART_AXIS_PRIMARY_X, 10, 5, 10, 4, true, 50);
     lv_chart_set_axis_tick(ui_Chart3, LV_CHART_AXIS_PRIMARY_Y, 10, 5, 5, 2, true, 50);
     lv_chart_set_axis_tick(ui_Chart3, LV_CHART_AXIS_SECONDARY_Y, 10, 5, 5, 2, true, 25);
     lv_chart_series_t * ui_Chart3_series_1 = lv_chart_add_series(ui_Chart3, lv_color_hex(0x41C539),
                                                                  LV_CHART_AXIS_PRIMARY_Y);
-    static lv_coord_t ui_Chart3_series_1_array[] = { 70, 70, 75, 80, 80, 85, 90, 100, 140, 190 };
+    static lv_coord_t ui_Chart3_series_1_array[] = { 20, 25, 25, 30, 30, 35, 35, 40, 40, 45 };
     lv_chart_set_ext_y_array(ui_Chart3, ui_Chart3_series_1, ui_Chart3_series_1_array);
     lv_chart_series_t * ui_Chart3_series_2 = lv_chart_add_series(ui_Chart3, lv_color_hex(0xEE2B04),
                                                                  LV_CHART_AXIS_SECONDARY_Y);
-    static lv_coord_t ui_Chart3_series_2_array[] = { 60, 60, 60, 60, 65, 65, 70, 70, 75, 80 };
+    static lv_coord_t ui_Chart3_series_2_array[] = { 15, 15, 20, 20, 27, 27, 28, 29, 32, 35 };
     lv_chart_set_ext_y_array(ui_Chart3, ui_Chart3_series_2, ui_Chart3_series_2_array);
     lv_obj_set_style_bg_color(ui_Chart3, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_opa(ui_Chart3, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    ui_Label8 = lv_label_create(ui_Temperatures);
-    lv_obj_set_width(ui_Label8, LV_SIZE_CONTENT);   /// 1
-    lv_obj_set_height(ui_Label8, LV_SIZE_CONTENT);    /// 1
-    lv_obj_set_x(ui_Label8, 315);
-    lv_obj_set_y(ui_Label8, 0);
-    lv_label_set_text(ui_Label8, "Heatsink");
-    lv_obj_set_style_text_color(ui_Label8, lv_color_hex(0x29BE20), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_opa(ui_Label8, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    ui_HeatsinkTemp = lv_label_create(ui_Temperatures);
+    lv_obj_set_width(ui_HeatsinkTemp, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_HeatsinkTemp, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_HeatsinkTemp, 180);
+    lv_obj_set_y(ui_HeatsinkTemp, 0);
+    lv_label_set_text(ui_HeatsinkTemp, "Heatsink:");
+    lv_obj_set_style_text_color(ui_HeatsinkTemp, lv_color_hex(0x29BE20), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_HeatsinkTemp, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    ui_Label5 = lv_label_create(ui_Temperatures);
-    lv_obj_set_width(ui_Label5, LV_SIZE_CONTENT);   /// 1
-    lv_obj_set_height(ui_Label5, LV_SIZE_CONTENT);    /// 1
-    lv_obj_set_x(ui_Label5, 380);
-    lv_obj_set_y(ui_Label5, 0);
-    lv_label_set_text(ui_Label5, "/");
+    ui_HSTvalue = lv_label_create(ui_Temperatures);
+    lv_obj_set_width(ui_HSTvalue, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_HSTvalue, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_HSTvalue, 265);
+    lv_obj_set_y(ui_HSTvalue, 0);
+    lv_label_set_text(ui_HSTvalue, "x");
+    lv_obj_set_style_text_color(ui_HSTvalue, lv_color_hex(0x41C639), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_HSTvalue, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    ui_Label9 = lv_label_create(ui_Temperatures);
-    lv_obj_set_width(ui_Label9, LV_SIZE_CONTENT);   /// 1
-    lv_obj_set_height(ui_Label9, LV_SIZE_CONTENT);    /// 1
-    lv_obj_set_x(ui_Label9, 385);
-    lv_obj_set_y(ui_Label9, 0);
-    lv_label_set_text(ui_Label9, "Battery");
-    lv_obj_set_style_text_color(ui_Label9, lv_color_hex(0xEE2800), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_opa(ui_Label9, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    ui_TestBatteryTemp = lv_label_create(ui_Temperatures);
+    lv_obj_set_width(ui_TestBatteryTemp, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_TestBatteryTemp, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_TestBatteryTemp, 500);
+    lv_obj_set_y(ui_TestBatteryTemp, 0);
+    lv_label_set_text(ui_TestBatteryTemp, "Test Battery:");
+    lv_obj_set_style_text_color(ui_TestBatteryTemp, lv_color_hex(0xEE2800), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_TestBatteryTemp, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_TBTvalue = lv_label_create(ui_Temperatures);
+    lv_obj_set_width(ui_TBTvalue, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_TBTvalue, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_TBTvalue, 610);
+    lv_obj_set_y(ui_TBTvalue, 0);
+    lv_label_set_text(ui_TBTvalue, "x");
+    lv_obj_set_style_text_color(ui_TBTvalue, lv_color_hex(0xEE2800), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_TBTvalue, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_Label10 = lv_label_create(ui_Temperatures);
     lv_obj_set_width(ui_Label10, LV_SIZE_CONTENT);   /// 1
     lv_obj_set_height(ui_Label10, LV_SIZE_CONTENT);    /// 1
     lv_obj_set_x(ui_Label10, 10);
     lv_obj_set_y(ui_Label10, 0);
-    lv_label_set_text(ui_Label10, "F");
+    lv_label_set_text(ui_Label10, "C");
     lv_obj_set_style_text_color(ui_Label10, lv_color_hex(0x29BE20), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_Label10, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
@@ -257,14 +330,35 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_height(ui_Label11, LV_SIZE_CONTENT);    /// 1
     lv_obj_set_x(ui_Label11, 740);
     lv_obj_set_y(ui_Label11, 0);
-    lv_label_set_text(ui_Label11, "F");
+    lv_label_set_text(ui_Label11, "C");
     lv_obj_set_style_text_color(ui_Label11, lv_color_hex(0xEE2800), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_Label11, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_File_Storage = lv_tabview_add_tab(ui_TabView1, "File Storage");
 
+    ui_SDReminder = lv_label_create(ui_File_Storage);
+    lv_obj_set_width(ui_SDReminder, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_SDReminder, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_SDReminder, 100);
+    lv_obj_set_y(ui_SDReminder, 375);
+    lv_label_set_text(ui_SDReminder, "Reminder: Please \"eject media\" before removing SD card from the computer!");
+
+    ui_SDCardStatus = lv_label_create(ui_File_Storage);
+    lv_obj_set_width(ui_SDCardStatus, LV_SIZE_CONTENT);   /// 10
+    lv_obj_set_height(ui_SDCardStatus, LV_SIZE_CONTENT);    /// 10
+    lv_obj_set_x(ui_SDCardStatus, 500);
+    lv_obj_set_y(ui_SDCardStatus, 30);
+    lv_label_set_text(ui_SDCardStatus, "SD Card Status: Checking...");
+
+    ui_ExportStatus = lv_label_create(ui_File_Storage);
+    lv_obj_set_width(ui_ExportStatus, LV_SIZE_CONTENT);   /// 10
+    lv_obj_set_height(ui_ExportStatus, LV_SIZE_CONTENT);    /// 10
+    lv_obj_set_x(ui_ExportStatus, 500);
+    lv_obj_set_y(ui_ExportStatus, 110);
+    lv_label_set_text(ui_ExportStatus, "Export Status: Idle");
+
     ui_File_Name = lv_textarea_create(ui_File_Storage);
-    lv_obj_set_width(ui_File_Name, 700);
+    lv_obj_set_width(ui_File_Name, 350);
     lv_obj_set_height(ui_File_Name, LV_SIZE_CONTENT);    /// 50
     lv_obj_set_x(ui_File_Name, 30);
     lv_obj_set_y(ui_File_Name, 20);
@@ -272,7 +366,7 @@ void ui_Screen1_screen_init(void)
     lv_textarea_set_one_line(ui_File_Name, true);
 
     ui_Date = lv_textarea_create(ui_File_Storage);
-    lv_obj_set_width(ui_Date, 700);
+    lv_obj_set_width(ui_Date, 350);
     lv_obj_set_height(ui_Date, LV_SIZE_CONTENT);    /// 50
     lv_obj_set_x(ui_Date, 30);
     lv_obj_set_y(ui_Date, 100);
@@ -282,8 +376,8 @@ void ui_Screen1_screen_init(void)
     ui_Button1 = lv_btn_create(ui_File_Storage);
     lv_obj_set_width(ui_Button1, 200);
     lv_obj_set_height(ui_Button1, 50);
-    lv_obj_set_x(ui_Button1, 300);
-    lv_obj_set_y(ui_Button1, 300);
+    lv_obj_set_x(ui_Button1, 105);
+    lv_obj_set_y(ui_Button1, 200);
     lv_obj_add_flag(ui_Button1, LV_OBJ_FLAG_SCROLL_ON_FOCUS);     /// Flags
     lv_obj_clear_flag(ui_Button1, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
     lv_obj_set_style_text_color(ui_Button1, lv_color_hex(0x030303), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -292,9 +386,9 @@ void ui_Screen1_screen_init(void)
     ui_Label14 = lv_label_create(ui_File_Storage);
     lv_obj_set_width(ui_Label14, LV_SIZE_CONTENT);   /// 1
     lv_obj_set_height(ui_Label14, LV_SIZE_CONTENT);    /// 1
-    lv_obj_set_x(ui_Label14, 375);
-    lv_obj_set_y(ui_Label14, 315);
-    lv_label_set_text(ui_Label14, "Export!");
+    lv_obj_set_x(ui_Label14, 160);
+    lv_obj_set_y(ui_Label14, 217);
+    lv_label_set_text(ui_Label14, ".CSV Export!");
     lv_obj_set_style_text_color(ui_Label14, lv_color_hex(0xF6F6F6), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_Label14, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
@@ -324,28 +418,37 @@ void ui_Screen1_screen_destroy(void)
     ui_TabView1 = NULL;
     ui_Main = NULL;
     ui_Chart2 = NULL;
-    ui_Label1 = NULL;
+    ui_TestBatteryVoltage = NULL;
+    ui_TBVvalue = NULL;
+    ui_TestBatteryCurrent = NULL;
+    ui_TBCvalue = NULL;
     ui_Label3 = NULL;
     ui_Label4 = NULL;
     ui_Chart6 = NULL;
     ui_Label6 = NULL;
-    ui_Label2 = NULL;
+    ui_Power = NULL;
+    ui_Pvalue = NULL;
     uic_Current = NULL;
     ui_Current = NULL;
     ui_Chart1 = NULL;
     ui_Label15 = NULL;
-    ui_Label7 = NULL;
+    ui_AuxillaryBattery = NULL;
+    ui_ABvalue = NULL;
     ui_Bar2 = NULL;
-    ui_Label12 = NULL;
-    ui_Label13 = NULL;
+    ui_Potentiometer = NULL;
+    ui_Potvalue = NULL;
     ui_Temperatures = NULL;
     ui_Chart3 = NULL;
-    ui_Label8 = NULL;
-    ui_Label5 = NULL;
-    ui_Label9 = NULL;
+    ui_HeatsinkTemp = NULL;
+    ui_HSTvalue = NULL;
+    ui_TestBatteryTemp = NULL;
+    ui_TBTvalue = NULL;
     ui_Label10 = NULL;
     ui_Label11 = NULL;
     ui_File_Storage = NULL;
+    ui_SDReminder = NULL;
+    ui_SDCardStatus = NULL;
+    ui_ExportStatus = NULL;
     ui_File_Name = NULL;
     ui_Date = NULL;
     ui_Button1 = NULL;

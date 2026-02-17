@@ -6,6 +6,8 @@
 #include <Adafruit_GFX.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <limits.h>
+#include <math.h>
 
 #include "lgfx/lgfx.h"
 #include "ui.h"
@@ -22,19 +24,29 @@ static bool g_sd_ok = false; // track whether SD card mounted successfully
 static uint32_t g_last_sample_ms = 0;
 static uint32_t g_boot_ms = 0;
 static bool g_sd_status_printed = false;
+static uint32_t g_last_sd_poll_ms = 0;
+static uint32_t g_export_status_reset_ms = 0;
+static float g_last_ui_tbv = NAN;
+static float g_last_ui_tbc = NAN;
+static float g_last_ui_power = NAN;
+static float g_last_ui_ab = NAN;
+static float g_last_ui_hst = NAN;
+static float g_last_ui_tbt = NAN;
+static float g_last_ui_pot = NAN;
 
 // Latest UART data (RP2040) for ring buffer sampling
 static bool g_has_uart_sample = false;
-static int16_t g_last_tb1 = 0;
-static int16_t g_last_tb2 = 0;
-static int16_t g_last_shunt = 0;
-static int16_t g_last_aux = 0;
-static int16_t g_last_t1 = 0;
-static int16_t g_last_t2 = 0;
+static float g_last_tb1 = 0.0f;
+static float g_last_tb2 = 0.0f;
+static float g_last_shunt = 0.0f;
+static float g_last_aux = 0.0f;
+static float g_last_t1 = 0.0f;
+static float g_last_t2 = 0.0f;
+static float g_last_pot = 0.0f;
 
 // ----------------------------------------------------
 // UART data parser (RP2040 -> ESP32)
-// Expected line: DATA,<tb1>,<tb2>,<shunt>,<aux>,<t1>,<t2>\n
+// Expected line: DATA,<tb1>,<tb2>,<shunt>,<aux>,<t1>,<t2>,<pot>\n
 // ----------------------------------------------------
 static constexpr size_t UART_LINE_MAX = 96;
 static char g_uart_line[UART_LINE_MAX];
@@ -57,37 +69,154 @@ static void diag_printf(const char* fmt, ...)
   Serial.print(buf);
 }
 
-static void chart_push_value(lv_obj_t* chart, uint16_t series_idx, int16_t v)
+static void ui_set_status_label(lv_obj_t* label, const char* text, lv_color_t color)
+{
+  if (!label || !text) return;
+  lv_label_set_text(label, text);
+  lv_obj_set_style_text_color(label, color, LV_PART_MAIN | LV_STATE_DEFAULT);
+}
+
+static void ui_set_sd_status(bool ready)
+{
+  if (ready) {
+    ui_set_status_label(ui_SDCardStatus, "SD Card Status: Ready", lv_palette_main(LV_PALETTE_GREEN));
+  } else {
+    ui_set_status_label(ui_SDCardStatus, "SD Card Status: Not Ready", lv_palette_main(LV_PALETTE_RED));
+  }
+}
+
+static void ui_set_export_status_idle()
+{
+  ui_set_status_label(ui_ExportStatus, "Export Status: Idle", lv_palette_main(LV_PALETTE_GREY));
+}
+
+static void ui_set_export_status_ok()
+{
+  ui_set_status_label(ui_ExportStatus, "Export Status: Success", lv_palette_main(LV_PALETTE_GREEN));
+}
+
+static void ui_set_export_status_error(const char* reason)
+{
+  char buf[96];
+  snprintf(buf, sizeof(buf), "Export Status: %s", reason ? reason : "Failed");
+  ui_set_status_label(ui_ExportStatus, buf, lv_palette_main(LV_PALETTE_RED));
+}
+
+static void ui_schedule_export_status_idle(uint32_t now_ms)
+{
+  g_export_status_reset_ms = now_ms + 10000UL;
+}
+
+static void chart_push_value(lv_obj_t* chart, uint16_t series_idx, float v)
 {
   lv_chart_series_t* series = chart_series_by_index(chart, series_idx);
   if (!series) return;
-  lv_chart_set_next_value(chart, series, v);
+  lv_chart_set_next_value(chart, series, (lv_coord_t)lroundf(v));
+}
+
+static bool value_changed(float a, float b)
+{
+  return isnan(a) || fabsf(a - b) >= 0.0005f;
+}
+
+static void ui_set_value_label(lv_obj_t* label, float value, const char* unit)
+{
+  if (!label || !unit) return;
+
+  const int32_t scaled = (int32_t)lroundf(value * 1000.0f);
+  const bool neg = (scaled < 0);
+  const int32_t abs_scaled = neg ? -scaled : scaled;
+  const int32_t whole = abs_scaled / 1000;
+  const int32_t frac = abs_scaled % 1000;
+
+  char buf[40];
+  if (neg) {
+    snprintf(buf, sizeof(buf), "-%ld.%03ld%s", (long)whole, (long)frac, unit);
+  } else {
+    snprintf(buf, sizeof(buf), "%ld.%03ld%s", (long)whole, (long)frac, unit);
+  }
+
+  lv_label_set_text(label, buf);
+}
+
+static void ui_sync_test_battery_title_values()
+{
+  const float tbv = g_last_tb1;
+  const float tbc = g_last_tb2;
+  const float power = g_last_shunt;
+  const float ab = g_last_aux;
+  const float hst = g_last_t1;
+  const float tbt = g_last_t2;
+  const float pot = g_last_pot;
+
+  if (value_changed(g_last_ui_tbv, tbv)) {
+    ui_set_value_label(ui_TBVvalue, tbv, " V");
+    g_last_ui_tbv = tbv;
+  }
+
+  if (value_changed(g_last_ui_tbc, tbc)) {
+    ui_set_value_label(ui_TBCvalue, tbc, " A");
+    g_last_ui_tbc = tbc;
+  }
+
+  if (value_changed(g_last_ui_power, power)) {
+    ui_set_value_label(ui_Pvalue, power, " W");
+    g_last_ui_power = power;
+  }
+
+  if (value_changed(g_last_ui_ab, ab)) {
+    ui_set_value_label(ui_ABvalue, ab, " A");
+    g_last_ui_ab = ab;
+  }
+
+  if (value_changed(g_last_ui_hst, hst)) {
+    ui_set_value_label(ui_HSTvalue, hst, " C");
+    g_last_ui_hst = hst;
+  }
+
+  if (value_changed(g_last_ui_tbt, tbt)) {
+    ui_set_value_label(ui_TBTvalue, tbt, " C");
+    g_last_ui_tbt = tbt;
+  }
+
+  if (value_changed(g_last_ui_pot, pot)) {
+    ui_set_value_label(ui_Potvalue, pot, " A");
+    g_last_ui_pot = pot;
+  }
+
+  if (ui_Bar2) {
+    int16_t bar_v = (int16_t)lroundf(pot);
+    if (bar_v < 0) bar_v = 0;
+    if (bar_v > 20) bar_v = 20;
+    lv_bar_set_value(ui_Bar2, bar_v, LV_ANIM_OFF);
+  }
 }
 
 static bool parse_data_line(const char* line,
-                            int16_t& tb1, int16_t& tb2, int16_t& shunt,
-                            int16_t& aux, int16_t& t1, int16_t& t2)
+                            float& tb1, float& tb2, float& shunt,
+                            float& aux, float& t1, float& t2, float& pot)
 {
   if (!line) return false;
   if (strncmp(line, "DATA,", 5) != 0) return false;
 
-  int v1, v2, v3, v4, v5, v6;
-  if (sscanf(line + 5, "%d,%d,%d,%d,%d,%d", &v1, &v2, &v3, &v4, &v5, &v6) != 6)
-    return false;
+  float v1, v2, v3, v4, v5, v6, v7;
+  int n = sscanf(line + 5, "%f,%f,%f,%f,%f,%f,%f", &v1, &v2, &v3, &v4, &v5, &v6, &v7);
+  if (n != 7 && n != 6) return false;
 
-  tb1 = (int16_t)v1;
-  tb2 = (int16_t)v2;
-  shunt = (int16_t)v3;
-  aux = (int16_t)v4;
-  t1 = (int16_t)v5;
-  t2 = (int16_t)v6;
+  tb1 = roundf(v1 * 1000.0f) / 1000.0f;
+  tb2 = roundf(v2 * 1000.0f) / 1000.0f;
+  shunt = roundf(v3 * 1000.0f) / 1000.0f;
+  aux = roundf(v4 * 1000.0f) / 1000.0f;
+  t1 = roundf(v5 * 1000.0f) / 1000.0f;
+  t2 = roundf(v6 * 1000.0f) / 1000.0f;
+  pot = roundf(((n == 7) ? v7 : v4) * 1000.0f) / 1000.0f;
   return true;
 }
 
 static void handle_uart_line(const char* line)
 {
-  int16_t tb1, tb2, shunt, aux, t1, t2;
-  if (!parse_data_line(line, tb1, tb2, shunt, aux, t1, t2)) return;
+  float tb1, tb2, shunt, aux, t1, t2, pot;
+  if (!parse_data_line(line, tb1, tb2, shunt, aux, t1, t2, pot)) return;
 
   // Update latest UART sample for ring buffer
   g_last_tb1 = tb1;
@@ -96,6 +225,7 @@ static void handle_uart_line(const char* line)
   g_last_aux = aux;
   g_last_t1 = t1;
   g_last_t2 = t2;
+  g_last_pot = pot;
   g_has_uart_sample = true;
 
   chart_push_value(ui_Chart2, 0, tb1);
@@ -109,6 +239,7 @@ static void handle_uart_line(const char* line)
   lv_chart_refresh(ui_Chart6);
   lv_chart_refresh(ui_Chart1);
   lv_chart_refresh(ui_Chart3);
+  ui_sync_test_battery_title_values();
 }
 
 static lv_chart_series_t* chart_series_by_index(lv_obj_t* chart, uint16_t idx)
@@ -135,60 +266,57 @@ static void chart_clear_all(lv_obj_t* chart)
   lv_chart_refresh(chart);
 }
 
-static int16_t chart_latest_value(lv_obj_t* chart, uint16_t series_idx)
-{
-  lv_chart_series_t* series = chart_series_by_index(chart, series_idx);
-  if (!series) return 0;
-
-  uint16_t n = lv_chart_get_point_count(chart);
-  if (n == 0) return 0;
-
-  const lv_coord_t* y = lv_chart_get_y_array(chart, series);
-  if (!y) return 0;
-
-  for (int i = (int)n - 1; i >= 0; --i) {
-    if (y[i] != LV_CHART_POINT_NONE) return (int16_t)y[i];
-  }
-  return 0;
-}
-
 // ----------------------------------------------------
 // Export button callback
 // ----------------------------------------------------
 static void export_event_cb(lv_event_t* e)
 {
   if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
+  const uint32_t now_ms = millis();
 
   const char* name = lv_textarea_get_text(ui_File_Name);
   const char* date = lv_textarea_get_text(ui_Date);
 
   if (!g_sd_ok)
   {
-    Serial.println("❌ Export blocked: SD not mounted / not detected.");
+    Serial.println("Export blocked: SD not mounted / not detected.");
+    ui_set_export_status_error("No SD Card");
+    ui_schedule_export_status_idle(now_ms);
     return;
   }
 
   if (!name || name[0] == '\0')
   {
-    Serial.println("❌ Enter a file name before exporting.");
+    Serial.println("Enter a file name before exporting.");
+    ui_set_export_status_error("Enter File Name");
+    ui_schedule_export_status_idle(now_ms);
     return;
   }
 
   if (!date || date[0] == '\0')
   {
-    Serial.println("❌ Enter a date before exporting.");
+    Serial.println("Enter a date before exporting.");
+    ui_set_export_status_error("Enter Date");
+    ui_schedule_export_status_idle(now_ms);
     return;
   }
 
-  bool ok = sd_export_all_graphs_combined_csv(name, date,
-                                               ui_Chart2,
-                                               ui_Chart6,
-                                               ui_Chart1,
-                                               ui_Chart3);
+  bool ok = sd_export_combined_csv(name, date,
+                                   ui_Chart2,
+                                   ui_Chart6,
+                                   ui_Chart1,
+                                   ui_Chart3);
 
 
-  if (ok) Serial.println("✅ Export success (CSV written to SD).");
-  else    Serial.println("❌ Export failed.");
+  if (ok) {
+    Serial.println("Export success (CSV written to SD).");
+    ui_set_export_status_ok();
+    ui_schedule_export_status_idle(now_ms);
+  } else {
+    Serial.println("Export failed.");
+    ui_set_export_status_error("Failed");
+    ui_schedule_export_status_idle(now_ms);
+  }
 }
 
 // ----------------------------------------------------
@@ -248,9 +376,14 @@ void setup()
   chart_clear_all(ui_Chart6);
   chart_clear_all(ui_Chart1);
   chart_clear_all(ui_Chart3);
+  ui_sync_test_battery_title_values();
 
   // SD init
+  ui_set_status_label(ui_SDCardStatus, "SD Card Status: Checking...", lv_palette_main(LV_PALETTE_ORANGE));
   g_sd_ok = sd_init();
+  ui_set_sd_status(g_sd_ok);
+  ui_set_export_status_idle();
+  g_export_status_reset_ms = 0;
   diag_printf("SD status: %s\n", g_sd_ok ? "OK" : "NOT OK");
   Serial.flush();
 
@@ -270,12 +403,38 @@ void setup()
   lv_timer_handler();
 
   g_boot_ms = millis();
+  g_last_sd_poll_ms = g_boot_ms;
   g_sd_status_printed = false;
 }
 
 void loop()
 {
   lv_timer_handler();
+  ui_sync_test_battery_title_values();
+  const uint32_t now = millis();
+
+  if ((now - g_last_sd_poll_ms) >= 1000UL)
+  {
+    g_last_sd_poll_ms = now;
+    const bool sd_now_ok = sd_is_ready();
+    if (sd_now_ok != g_sd_ok)
+    {
+      g_sd_ok = sd_now_ok;
+      ui_set_sd_status(g_sd_ok);
+      if (!g_sd_ok) {
+        ui_set_export_status_error("No SD Card");
+        ui_schedule_export_status_idle(now);
+      }
+      diag_printf("SD status changed: %s\n", g_sd_ok ? "OK" : "NOT OK");
+    }
+  }
+
+  if (g_export_status_reset_ms != 0 &&
+      (int32_t)(now - g_export_status_reset_ms) >= 0)
+  {
+    ui_set_export_status_idle();
+    g_export_status_reset_ms = 0;
+  }
 
   if (!g_sd_status_printed && (millis() - g_boot_ms) >= 3000UL)
   {
@@ -283,7 +442,6 @@ void loop()
     g_sd_status_printed = true;
   }
 
-  const uint32_t now = millis();
   if ((now - g_last_sample_ms) >= 5000UL)
   {
     g_last_sample_ms = now;
@@ -292,12 +450,12 @@ void loop()
     s.t_s = now / 1000UL;
     if (g_has_uart_sample)
     {
-      s.testBattery_s1 = g_last_tb1;
-      s.testBattery_s2 = g_last_tb2;
-      s.shunt_s1 = g_last_shunt;
-      s.auxCurrent_s1 = g_last_aux;
-      s.temperatures_s1 = g_last_t1;
-      s.temperatures_s2 = g_last_t2;
+      s.testBattery_s1 = (int16_t)lroundf(g_last_tb1);
+      s.testBattery_s2 = (int16_t)lroundf(g_last_tb2);
+      s.shunt_s1 = (int16_t)lroundf(g_last_shunt);
+      s.auxCurrent_s1 = (int16_t)lroundf(g_last_aux);
+      s.temperatures_s1 = (int16_t)lroundf(g_last_t1);
+      s.temperatures_s2 = (int16_t)lroundf(g_last_t2);
     }
 
     dm_push(s);

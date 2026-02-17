@@ -16,6 +16,24 @@ static constexpr int SD_MOSI = 11;
 
 static SPIClass sdSPI(FSPI);
 
+static bool sd_try_mount(bool log)
+{
+  sdSPI.begin(SD_SCK, SD_MISO, SD_MOSI, SD_CS);
+
+  if (!SD.begin(SD_CS, sdSPI, 20000000)) {
+    if (log) Serial.println("SD.begin failed");
+    return false;
+  }
+
+  if (SD.cardType() == CARD_NONE) {
+    if (log) Serial.println("No SD card detected");
+    return false;
+  }
+
+  return true;
+}
+
+// Replace any invalid characters with underscores for name and date of CSV export
 static void sanitize(char* s)
 {
   for (int i = 0; s[i]; i++)
@@ -31,191 +49,47 @@ static void sanitize(char* s)
 
 bool sd_init()
 {
+  // print SPI pin mapping to serial monitor
   Serial.println("---- SD INIT (SPI) ----");
   Serial.printf("SPI pins: SCK=%d MISO=%d MOSI=%d CS=%d\n", SD_SCK, SD_MISO, SD_MOSI, SD_CS);
 
-  sdSPI.begin(SD_SCK, SD_MISO, SD_MOSI, SD_CS);
+  if (!sd_try_mount(true)) return false;
 
-  if (!SD.begin(SD_CS, sdSPI, 20000000)) {
-    Serial.println("❌ SD.begin failed");
-    return false;
-  }
-
-  if (SD.cardType() == CARD_NONE) {
-    Serial.println("❌ No SD card detected");
-    return false;
-  }
-
-  Serial.println("✅ SD mounted");
+  // if SD card is present and accessible, serial monitor gives green check
+  Serial.println("SD mounted");
   return true;
 }
 
-bool sd_export_csv(const char* name_raw, const char* date_raw)
+bool sd_is_ready()
 {
-  if (!name_raw || !date_raw) return false;
-
-  char name[64];
-  char date[32];
-  snprintf(name, sizeof(name), "%s", name_raw);
-  snprintf(date, sizeof(date), "%s", date_raw);
-
-  sanitize(name);
-  sanitize(date);
-
-  char path[128];
-  snprintf(path, sizeof(path), "/%s_%s.csv", date, name);
-
-  Serial.print("Writing CSV: ");
-  Serial.println(path);
-
-  File f = SD.open(path, FILE_WRITE);
-  if (!f) {
-    Serial.println("❌ Failed to open file");
-    return false;
-  }
-
-  f.println("time_s,vbat_v");
-  for (int i = 0; i < 20; i++) {
-    f.printf("%d,%.3f\n", i, 12.64);
-  }
-
-  f.close();
-  Serial.println("✅ CSV export done");
-  return true;
-}
-
-bool sd_export_chart_csv_first_series(const char* name_raw, const char* date_raw,
-                                      const char* suffix,
-                                      lv_obj_t* chart)
-{
-  if (!name_raw || !date_raw || !suffix || !chart) return false;
-
-  // Get the first series on the chart (works even if SquareLine keeps it local)
-  lv_chart_series_t* series = lv_chart_get_series_next(chart, NULL);
-  if (!series) {
-    Serial.println("❌ No chart series found on this chart.");
-    return false;
-  }
-
-  // ---- same body as your old series export ----
-  char name[64];
-  char date[32];
-  snprintf(name, sizeof(name), "%s", name_raw);
-  snprintf(date, sizeof(date), "%s", date_raw);
-
-  sanitize(name);
-  sanitize(date);
-
-  if (!SD.exists("/logs")) SD.mkdir("/logs");
-
-  char suffix_buf[32];
-  snprintf(suffix_buf, sizeof(suffix_buf), "%s", suffix);
-  sanitize(suffix_buf);
-
-  char path[160];
-  snprintf(path, sizeof(path), "/logs/%s_%s_%s.csv", date, name, suffix_buf);
-
-  Serial.print("Writing CSV: ");
-  Serial.println(path);
-
-  File f = SD.open(path, FILE_WRITE);
-  if (!f) {
-    Serial.println("❌ Failed to open file");
-    return false;
-  }
-
-  f.println("index,y");
-
-  uint16_t n = lv_chart_get_point_count(chart);
-  const lv_coord_t* y = lv_chart_get_y_array(chart, series);
-
-  for (uint16_t i = 0; i < n; i++) {
-    if (y[i] == LV_CHART_POINT_NONE) continue;
-    f.printf("%u,%d\n", i, (int)y[i]);
-  }
-
-  f.close();
-  Serial.println("✅ Chart CSV export done");
-  return true;
-}
-
-
-bool sd_export_chart_csv_all_series(const char* name_raw, const char* date_raw,
-                                    const char* suffix,
-                                    lv_obj_t* chart)
-{
-  if (!name_raw || !date_raw || !suffix || !chart) return false;
-
-  char name[64];
-  char date[32];
-  snprintf(name, sizeof(name), "%s", name_raw);
-  snprintf(date, sizeof(date), "%s", date_raw);
-
-  sanitize(name);
-  sanitize(date);
-
-  if (!SD.exists("/logs")) SD.mkdir("/logs");
-
-  char suffix_buf[32];
-  snprintf(suffix_buf, sizeof(suffix_buf), "%s", suffix);
-  sanitize(suffix_buf);
-
-  uint16_t n = lv_chart_get_point_count(chart);
-  lv_chart_series_t* series = NULL;
-  uint16_t series_index = 0;
-  bool found_any_series = false;
-  bool all_ok = true;
-
-  while ((series = lv_chart_get_series_next(chart, series)) != NULL) {
-    found_any_series = true;
-
-    char path[180];
-    snprintf(path, sizeof(path), "/logs/%s_%s_%s_s%u.csv",
-             date, name, suffix_buf, (unsigned)(series_index + 1U));
-
-    Serial.print("Writing CSV: ");
-    Serial.println(path);
-
-    File f = SD.open(path, FILE_WRITE);
-    if (!f) {
-      Serial.println("Failed to open file");
-      all_ok = false;
-      series_index++;
-      continue;
+  if (SD.cardType() != CARD_NONE) {
+    File root = SD.open("/");
+    if (root) {
+      root.close();
+      return true;
     }
-
-    f.println("index,y");
-
-    const lv_coord_t* y = lv_chart_get_y_array(chart, series);
-    for (uint16_t i = 0; i < n; i++) {
-      if (y[i] == LV_CHART_POINT_NONE) continue;
-      f.printf("%u,%d\n", i, (int)y[i]);
-    }
-
-    f.close();
-    series_index++;
   }
 
-  if (!found_any_series) {
-    Serial.println("No chart series found on this chart.");
-    return false;
-  }
+  if (!sd_try_mount(false)) return false;
 
-  if (all_ok) Serial.println("Chart all-series CSV export done");
-  return all_ok;
+  File root = SD.open("/");
+  if (!root) return false;
+  root.close();
+  return true;
 }
 
-bool sd_export_all_graphs_combined_csv(const char* name_raw, const char* date_raw,
-                                       lv_obj_t* battery_chart,
-                                       lv_obj_t* shunt_chart,
-                                       lv_obj_t* current_chart,
-                                       lv_obj_t* temperatures_chart)
+bool sd_export_combined_csv(const char* name_raw, const char* date_raw,
+                            lv_obj_t* battery_chart,
+                            lv_obj_t* shunt_chart,
+                            lv_obj_t* current_chart,
+                            lv_obj_t* temperatures_chart)
 {
   (void)battery_chart;
   (void)shunt_chart;
   (void)current_chart;
   (void)temperatures_chart;
 
+  // if name or date are null fail immediately
   if (!name_raw || !date_raw) return false;
 
   char name[64];
