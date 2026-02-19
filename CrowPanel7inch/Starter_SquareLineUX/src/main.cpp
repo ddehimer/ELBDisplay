@@ -38,7 +38,7 @@ static float g_last_ui_pot = NAN;
 static bool g_has_uart_sample = false;
 static float g_last_tb1 = 0.0f;
 static float g_last_tb2 = 0.0f;
-static float g_last_shunt = 0.0f;
+static float g_last_power_w = 0.0f;
 static float g_last_aux = 0.0f;
 static float g_last_t1 = 0.0f;
 static float g_last_t2 = 0.0f;
@@ -46,7 +46,7 @@ static float g_last_pot = 0.0f;
 
 // ----------------------------------------------------
 // UART data parser (RP2040 -> ESP32)
-// Expected line: DATA,<tb1>,<tb2>,<shunt>,<aux>,<t1>,<t2>,<pot>\n
+// Expected line: DATA,<tb_v>,<tb_a>,<aux_a>,<sink_t_c>,<batt_t_c>,<pot_v>\n
 // ----------------------------------------------------
 static constexpr size_t UART_LINE_MAX = 96;
 static char g_uart_line[UART_LINE_MAX];
@@ -143,7 +143,7 @@ static void ui_sync_test_battery_title_values()
 {
   const float tbv = g_last_tb1;
   const float tbc = g_last_tb2;
-  const float power = g_last_shunt;
+  const float power = g_last_power_w;
   const float ab = g_last_aux;
   const float hst = g_last_t1;
   const float tbt = g_last_t2;
@@ -193,47 +193,47 @@ static void ui_sync_test_battery_title_values()
 }
 
 static bool parse_data_line(const char* line,
-                            float& tb1, float& tb2, float& shunt,
-                            float& aux, float& t1, float& t2, float& pot)
+                            float& tb_v, float& tb_a,
+                            float& aux_a, float& sink_t_c, float& batt_t_c, float& pot_v)
 {
   if (!line) return false;
   if (strncmp(line, "DATA,", 5) != 0) return false;
 
-  float v1, v2, v3, v4, v5, v6, v7;
-  int n = sscanf(line + 5, "%f,%f,%f,%f,%f,%f,%f", &v1, &v2, &v3, &v4, &v5, &v6, &v7);
-  if (n != 7 && n != 6) return false;
+  float v1, v2, v3, v4, v5, v6;
+  int n = sscanf(line + 5, "%f,%f,%f,%f,%f,%f", &v1, &v2, &v3, &v4, &v5, &v6);
+  if (n != 6) return false;
 
-  tb1 = roundf(v1 * 1000.0f) / 1000.0f;
-  tb2 = roundf(v2 * 1000.0f) / 1000.0f;
-  shunt = roundf(v3 * 1000.0f) / 1000.0f;
-  aux = roundf(v4 * 1000.0f) / 1000.0f;
-  t1 = roundf(v5 * 1000.0f) / 1000.0f;
-  t2 = roundf(v6 * 1000.0f) / 1000.0f;
-  pot = roundf(((n == 7) ? v7 : v4) * 1000.0f) / 1000.0f;
+  tb_v = roundf(v1 * 1000.0f) / 1000.0f;
+  tb_a = roundf(v2 * 1000.0f) / 1000.0f;
+  aux_a = roundf(v3 * 1000.0f) / 1000.0f;
+  sink_t_c = roundf(v4 * 1000.0f) / 1000.0f;
+  batt_t_c = roundf(v5 * 1000.0f) / 1000.0f;
+  pot_v = roundf(v6 * 1000.0f) / 1000.0f;
   return true;
 }
 
 static void handle_uart_line(const char* line)
 {
-  float tb1, tb2, shunt, aux, t1, t2, pot;
-  if (!parse_data_line(line, tb1, tb2, shunt, aux, t1, t2, pot)) return;
+  float tb_v, tb_a, aux_a, sink_t_c, batt_t_c, pot_v;
+  if (!parse_data_line(line, tb_v, tb_a, aux_a, sink_t_c, batt_t_c, pot_v)) return;
 
   // Update latest UART sample for ring buffer
-  g_last_tb1 = tb1;
-  g_last_tb2 = tb2;
-  g_last_shunt = shunt;
-  g_last_aux = aux;
-  g_last_t1 = t1;
-  g_last_t2 = t2;
-  g_last_pot = pot;
+  const float power_w = roundf((tb_v * tb_a) * 1000.0f) / 1000.0f;
+  g_last_tb1 = tb_v;
+  g_last_tb2 = tb_a;
+  g_last_power_w = power_w;
+  g_last_aux = aux_a;
+  g_last_t1 = sink_t_c;
+  g_last_t2 = batt_t_c;
+  g_last_pot = pot_v;
   g_has_uart_sample = true;
 
-  chart_push_value(ui_Chart2, 0, tb1);
-  chart_push_value(ui_Chart2, 1, tb2);
-  chart_push_value(ui_Chart6, 0, shunt);
-  chart_push_value(ui_Chart1, 0, aux);
-  chart_push_value(ui_Chart3, 0, t1);
-  chart_push_value(ui_Chart3, 1, t2);
+  chart_push_value(ui_Chart2, 0, tb_v);
+  chart_push_value(ui_Chart2, 1, tb_a);
+  chart_push_value(ui_Chart6, 0, power_w);
+  chart_push_value(ui_Chart1, 0, aux_a);
+  chart_push_value(ui_Chart3, 0, sink_t_c);
+  chart_push_value(ui_Chart3, 1, batt_t_c);
 
   lv_chart_refresh(ui_Chart2);
   lv_chart_refresh(ui_Chart6);
@@ -452,7 +452,7 @@ void loop()
     {
       s.testBattery_s1 = (int16_t)lroundf(g_last_tb1);
       s.testBattery_s2 = (int16_t)lroundf(g_last_tb2);
-      s.shunt_s1 = (int16_t)lroundf(g_last_shunt);
+      s.power_w = (int16_t)lroundf(g_last_power_w);
       s.auxCurrent_s1 = (int16_t)lroundf(g_last_aux);
       s.temperatures_s1 = (int16_t)lroundf(g_last_t1);
       s.temperatures_s2 = (int16_t)lroundf(g_last_t2);
