@@ -8,6 +8,7 @@
 #include <stdarg.h>
 #include <limits.h>
 #include <math.h>
+#include <esp_system.h>
 
 #include "lgfx/lgfx.h"
 #include "ui.h"
@@ -59,14 +60,27 @@ static void diag_line(const char* msg)
   Serial.println(msg);
 }
 
-static void diag_printf(const char* fmt, ...)
+static const char* reset_reason_to_string(esp_reset_reason_t reason)
 {
-  char buf[160];
-  va_list args;
-  va_start(args, fmt);
-  vsnprintf(buf, sizeof(buf), fmt, args);
-  va_end(args);
-  Serial.print(buf);
+  switch (reason) {
+    case ESP_RST_UNKNOWN:   return "UNKNOWN";
+    case ESP_RST_POWERON:   return "POWERON";
+    case ESP_RST_EXT:       return "EXT_RESET";
+    case ESP_RST_SW:        return "SW_RESET";
+    case ESP_RST_PANIC:     return "PANIC";
+    case ESP_RST_INT_WDT:   return "INT_WDT";
+    case ESP_RST_TASK_WDT:  return "TASK_WDT";
+    case ESP_RST_WDT:       return "OTHER_WDT";
+    case ESP_RST_DEEPSLEEP: return "DEEPSLEEP";
+    case ESP_RST_BROWNOUT:  return "BROWNOUT";
+    case ESP_RST_SDIO:      return "SDIO";
+    default:                return "UNHANDLED";
+  }
+}
+static void log_reset_reason()
+{
+  const esp_reset_reason_t reason = esp_reset_reason();
+  diag_printf("Reset reason: %s (%d)\n", reset_reason_to_string(reason), (int)reason);
 }
 
 static void ui_set_status_label(lv_obj_t* label, const char* text, lv_color_t color)
@@ -180,7 +194,7 @@ static void ui_sync_test_battery_title_values()
   }
 
   if (value_changed(g_last_ui_pot, pot)) {
-    ui_set_value_label(ui_Potvalue, pot, " A");
+    ui_set_value_label(ui_Potvalue, pot, " V");
     g_last_ui_pot = pot;
   }
 
