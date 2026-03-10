@@ -80,7 +80,7 @@ static const char* reset_reason_to_string(esp_reset_reason_t reason)
 static void log_reset_reason()
 {
   const esp_reset_reason_t reason = esp_reset_reason();
-  diag_printf("Reset reason: %s (%d)\n", reset_reason_to_string(reason), (int)reason);
+  Serial.printf("Reset reason: %s (%d)\n", reset_reason_to_string(reason), (int)reason);
 }
 
 static void ui_set_status_label(lv_obj_t* label, const char* text, lv_color_t color)
@@ -398,7 +398,7 @@ void setup()
   ui_set_sd_status(g_sd_ok);
   ui_set_export_status_idle();
   g_export_status_reset_ms = 0;
-  diag_printf("SD status: %s\n", g_sd_ok ? "OK" : "NOT OK");
+  Serial.printf("SD status: %s\n", g_sd_ok ? "OK" : "NOT OK");
   Serial.flush();
 
   // -----------------------------
@@ -439,7 +439,7 @@ void loop()
         ui_set_export_status_error("No SD Card");
         ui_schedule_export_status_idle(now);
       }
-      diag_printf("SD status changed: %s\n", g_sd_ok ? "OK" : "NOT OK");
+      Serial.printf("SD status changed: %s\n", g_sd_ok ? "OK" : "NOT OK");
     }
   }
 
@@ -452,7 +452,7 @@ void loop()
 
   if (!g_sd_status_printed && (millis() - g_boot_ms) >= 3000UL)
   {
-    diag_printf("SD status (delayed): %s\n", g_sd_ok ? "OK" : "NOT OK");
+    Serial.printf("SD status (delayed): %s\n", g_sd_ok ? "OK" : "NOT OK");
     g_sd_status_printed = true;
   }
 
