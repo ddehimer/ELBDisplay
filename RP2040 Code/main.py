@@ -47,6 +47,12 @@ ADC_49 = 0x49
 ADC_4A = 0x4A
 
 # ============================================================
+# DAC ADDRESS (MCP4725)
+# ============================================================
+DAC_60 = 0x60   # Change if A0 tied differently
+DAC_VREF = 3.3  # MCP4725 powered from 3.3V
+
+# ============================================================
 # CHANNEL MAP (CONFIRMED)
 # ============================================================
 
@@ -118,6 +124,32 @@ def read_ads(addr, channel):
         raw -= 65536
 
     return raw * ADC_LSB
+
+# ============================================================
+# MCP4725 WRITE FUNCTION
+# ============================================================
+def write_dac_voltage(voltage):
+    """
+    Writes a voltage (in volts) to MCP4725.
+    Automatically clamps to DAC range.
+    """
+    voltage = 2.2
+
+    if voltage < 0:
+        voltage = 0
+    if voltage > DAC_VREF:
+        voltage = DAC_VREF
+
+    # Convert voltage to 12-bit value
+    dac_value = int((voltage / DAC_VREF) * 4095)
+
+    # Fast mode write
+    buffer = bytearray(3)
+    buffer[0] = 0x40
+    buffer[1] = dac_value >> 4
+    buffer[2] = (dac_value & 0x0F) << 4
+
+    i2c.writeto(DAC_60, buffer)
 
 # ============================================================
 # THERMISTOR FUNCTION
@@ -219,6 +251,8 @@ while True:
     # -------- 0x49 --------
     Pyranometer = read_ads(ADC_49, CH_PYRANOMETER)
     I_SET_POT_V = read_ads(ADC_49, CH_I_SET_POT)
+    # Mirror POT voltage to DAC
+    write_dac_voltage(I_SET_POT_V)
     Panel_T_V   = read_ads(ADC_49, CH_PANEL_TEMP)
     VR_5V       = read_ads(ADC_49, CH_5V_VR)
 
@@ -233,7 +267,7 @@ while True:
     Batt_Temp  = thermistor_temp(Batt_T_V, VR_5V)
     Sink_Temp  = thermistor_temp(Sink_T_V, VR_5V)
 
-    AuxI = -1* ((Aux_V - UOUT_ZERO) / HALL_V_PER_AMP)
+    AuxI = -1* ((Aux_V - UOUT_ZERO) / HALL_V_PER_AMP) - 0.05
     I_SET_Percent = (I_SET_POT_V / VR_5V) * 100.0
 
     TestI = read_shunt_current(ADC_48, CH_V_SENSE)
@@ -255,9 +289,13 @@ while True:
         f"AuxI:{fmt(AuxI)}A"
     )
 
-    line = "DATA,{},{},{},{},{},{},{}\n".format(TestV, TestI, TestV*TestI, AuxI, Sink_Temp, Batt_Temp, I_SET_POT_V)
+    line = "DATA,{},{},{},{},{},{}\n".format(TestV, TestI, AuxI, Sink_Temp, Batt_Temp, I_SET_POT_V)
     print (line)
     uart.write(line)
 
     print(output)
-    time.sleep(1)
+    time.sleep(0.5)
+
+    # line = "DATA,1,2,3,4,5,6\n"
+    # uart.write(line)
+    # time.sleep(0.5)
