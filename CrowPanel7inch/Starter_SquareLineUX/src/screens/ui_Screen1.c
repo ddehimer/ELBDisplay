@@ -170,7 +170,7 @@ void ui_Screen1_screen_init(void)
     ui_Power = lv_label_create(ui_Main);
     lv_obj_set_width(ui_Power, LV_SIZE_CONTENT);   /// 1
     lv_obj_set_height(ui_Power, LV_SIZE_CONTENT);    /// 1
-    lv_obj_set_x(ui_Power, 355);
+    lv_obj_set_x(ui_Power, 340);
     lv_obj_set_y(ui_Power, 205);
     lv_label_set_text(ui_Power, "Power:");
     lv_obj_set_style_text_color(ui_Power, lv_color_hex(0xE612E6), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -179,7 +179,7 @@ void ui_Screen1_screen_init(void)
     ui_Pvalue = lv_label_create(ui_Main);
     lv_obj_set_width(ui_Pvalue, LV_SIZE_CONTENT);   /// 1
     lv_obj_set_height(ui_Pvalue, LV_SIZE_CONTENT);    /// 1
-    lv_obj_set_x(ui_Pvalue, 420);
+    lv_obj_set_x(ui_Pvalue, 405);
     lv_obj_set_y(ui_Pvalue, 205);
     lv_label_set_text(ui_Pvalue, "x");
     lv_obj_set_style_text_color(ui_Pvalue, lv_color_hex(0xE610E6), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -193,13 +193,13 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_x(ui_Chart1, 30);
     lv_obj_set_y(ui_Chart1, 20);
     lv_chart_set_type(ui_Chart1, LV_CHART_TYPE_LINE);
-    lv_chart_set_range(ui_Chart1, LV_CHART_AXIS_PRIMARY_Y, 0, 12);
+    lv_chart_set_range(ui_Chart1, LV_CHART_AXIS_PRIMARY_Y, 0, 6);
     lv_chart_set_axis_tick(ui_Chart1, LV_CHART_AXIS_PRIMARY_X, 10, 5, 5, 2, true, 50);
     lv_chart_set_axis_tick(ui_Chart1, LV_CHART_AXIS_PRIMARY_Y, 10, 5, 5, 2, true, 50);
     lv_chart_set_axis_tick(ui_Chart1, LV_CHART_AXIS_SECONDARY_Y, 10, 5, 0, 2, true, 25);
     lv_chart_series_t * ui_Chart1_series_1 = lv_chart_add_series(ui_Chart1, lv_color_hex(0x1E7AD6),
                                                                  LV_CHART_AXIS_PRIMARY_Y);
-    static lv_coord_t ui_Chart1_series_1_array[] = { 0, 5, 10, 9, 10, 9, 10, 9, 10, 8 };
+    static lv_coord_t ui_Chart1_series_1_array[] = { 0, 1, 1, 3, 4, 4, 2, 4, 4, 3 };
     lv_chart_set_ext_y_array(ui_Chart1, ui_Chart1_series_1, ui_Chart1_series_1_array);
 
     ui_Label15 = lv_label_create(ui_Current);
@@ -231,9 +231,7 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_style_text_opa(ui_ABvalue, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_Bar2 = lv_bar_create(ui_Current);
-    lv_bar_set_range(ui_Bar2, 0, 20);
-    lv_bar_set_value(ui_Bar2, 12, LV_ANIM_OFF);
-    lv_bar_set_start_value(ui_Bar2, 0, LV_ANIM_OFF);
+    lv_bar_set_range(ui_Bar2, 0, 5);
     lv_obj_set_width(ui_Bar2, 250);
     lv_obj_set_height(ui_Bar2, 82);
     lv_obj_set_x(ui_Bar2, 250);
@@ -244,14 +242,14 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_height(ui_Potentiometer, LV_SIZE_CONTENT);    /// 1
     lv_obj_set_x(ui_Potentiometer, 295);
     lv_obj_set_y(ui_Potentiometer, 250);
-    lv_label_set_text(ui_Potentiometer, "Potentiometer (A) -");
+    lv_label_set_text(ui_Potentiometer, "Potentiometer:");
     lv_obj_set_style_text_color(ui_Potentiometer, lv_color_hex(0x1879D5), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_Potentiometer, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_Potvalue = lv_label_create(ui_Current);
     lv_obj_set_width(ui_Potvalue, LV_SIZE_CONTENT);   /// 1
     lv_obj_set_height(ui_Potvalue, LV_SIZE_CONTENT);    /// 1
-    lv_obj_set_x(ui_Potvalue, 445);
+    lv_obj_set_x(ui_Potvalue, 435);
     lv_obj_set_y(ui_Potvalue, 250);
     lv_label_set_text(ui_Potvalue, "x");
     lv_obj_set_style_text_color(ui_Potvalue, lv_color_hex(0x1879D5), LV_PART_MAIN | LV_STATE_DEFAULT);

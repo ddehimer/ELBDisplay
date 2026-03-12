@@ -6,7 +6,7 @@ struct Sample {
   uint32_t t_s;
   int16_t testBattery_s1;
   int16_t testBattery_s2;
-  int16_t shunt_s1;
+  int16_t power_w;
   int16_t auxCurrent_s1;
   int16_t temperatures_s1;
   int16_t temperatures_s2;

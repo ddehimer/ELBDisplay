@@ -80,12 +80,12 @@ bool sd_is_ready()
 
 bool sd_export_combined_csv(const char* name_raw, const char* date_raw,
                             lv_obj_t* battery_chart,
-                            lv_obj_t* shunt_chart,
+                            lv_obj_t* power_chart,
                             lv_obj_t* current_chart,
                             lv_obj_t* temperatures_chart)
 {
   (void)battery_chart;
-  (void)shunt_chart;
+  (void)power_chart;
   (void)current_chart;
   (void)temperatures_chart;
 
@@ -119,7 +119,7 @@ bool sd_export_combined_csv(const char* name_raw, const char* date_raw,
     return false;
   }
 
-  f.println("index,t_s,TestBattery_s1,TestBattery_s2,Shunt_s1,AuxCurrent_s1,Temp_s1,Temp_s2");
+  f.println("index,t_s,TestBattery_V,TestBattery_A,Power_W,AuxCurrent_s1,Temp_s1,Temp_s2");
 
   for (size_t i = 0; i < count; i++) {
     Sample s{};
@@ -130,7 +130,7 @@ bool sd_export_combined_csv(const char* name_raw, const char* date_raw,
              (unsigned long)s.t_s,
              (int)s.testBattery_s1,
              (int)s.testBattery_s2,
-             (int)s.shunt_s1,
+             (int)s.power_w,
              (int)s.auxCurrent_s1,
              (int)s.temperatures_s1,
              (int)s.temperatures_s2);
