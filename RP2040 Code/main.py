@@ -133,8 +133,6 @@ def write_dac_voltage(voltage):
     Writes a voltage (in volts) to MCP4725.
     Automatically clamps to DAC range.
     """
-    voltage = 2.2
-
     if voltage < 0:
         voltage = 0
     if voltage > DAC_VREF:
