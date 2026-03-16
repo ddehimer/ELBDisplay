@@ -50,7 +50,15 @@ ADC_4A = 0x4A
 # DAC ADDRESS (MCP4725)
 # ============================================================
 DAC_60 = 0x60   # Change if A0 tied differently
-DAC_VREF = 3.3  # MCP4725 powered from 3.3V
+DAC_VREF = 5.0  # MCP4725 powered from +5V_VR per schematic
+DAC_DIVIDER_GAIN = 5.1 / (100.0 + 5.1)
+
+REQUIRED_I2C_DEVICES = {
+    ADC_48: "ADS1115 @ 0x48",
+    ADC_49: "ADS1115 @ 0x49",
+    ADC_4A: "ADS1115 @ 0x4A",
+    DAC_60: "MCP4725 @ 0x60",
+}
 
 # ============================================================
 # CHANNEL MAP (CONFIRMED)
@@ -114,10 +122,20 @@ def fmt(v, digits=3):
 # ============================================================
 def read_ads(addr, channel):
     config = 0x8000 | MUX[channel] | BASE_CONFIG
-    i2c.writeto_mem(addr, REG_CONFIG, config.to_bytes(2, "big"))
+    try:
+        i2c.writeto_mem(addr, REG_CONFIG, config.to_bytes(2, "big"))
+    except OSError as exc:
+        raise RuntimeError(
+            "I2C write failed for device 0x{:02X} channel {}: {}".format(addr, channel, exc)
+        ) from exc
     time.sleep_ms(8)
 
-    data = i2c.readfrom_mem(addr, REG_CONVERSION, 2)
+    try:
+        data = i2c.readfrom_mem(addr, REG_CONVERSION, 2)
+    except OSError as exc:
+        raise RuntimeError(
+            "I2C read failed for device 0x{:02X} channel {}: {}".format(addr, channel, exc)
+        ) from exc
     raw = int.from_bytes(data, "big")
 
     if raw & 0x8000:
@@ -148,6 +166,13 @@ def write_dac_voltage(voltage):
     buffer[2] = (dac_value & 0x0F) << 4
 
     i2c.writeto(DAC_60, buffer)
+def scan_i2c_or_die():
+    found = i2c.scan()
+    print("I2C devices found:", [hex(addr) for addr in found])
+
+    missing = [label for addr, label in REQUIRED_I2C_DEVICES.items() if addr not in found]
+    if missing:
+        raise RuntimeError("Missing I2C device(s): {}".format(", ".join(missing)))
 
 # ============================================================
 # THERMISTOR FUNCTION
@@ -234,6 +259,7 @@ def read_shunt_current(addr, channel):
 # ============================================================
 # MAIN LOOP
 # ============================================================
+scan_i2c_or_die()
 SHUNT_ZERO = calibrate_shunt_zero(ADC_48)
 
 print("Starting telemetry loop...\n")
@@ -251,6 +277,7 @@ while True:
     I_SET_POT_V = read_ads(ADC_49, CH_I_SET_POT)
     # Mirror POT voltage to DAC
     write_dac_voltage(I_SET_POT_V)
+    CURRENT_SET_EXPECTED_V = min(max(I_SET_POT_V, 0), DAC_VREF) * DAC_DIVIDER_GAIN
     Panel_T_V   = read_ads(ADC_49, CH_PANEL_TEMP)
     VR_5V       = read_ads(ADC_49, CH_5V_VR)
 
@@ -279,6 +306,8 @@ while True:
         f"PWR:{fmt(Power_V)}, "
         f"PYR:{fmt(Pyranometer)}, "
         f"POT%:{fmt(I_SET_Percent,1)}, "
+        f"I_SET_POT:{fmt(I_SET_POT_V)}, "
+        f"CurrentSetExp:{fmt(CURRENT_SET_EXPECTED_V)}, "
         f"5VR:{fmt(VR_5V)}, "
         f"PanelT:{fmt(Panel_Temp,2)}, "
         f"BattT:{fmt(Batt_Temp,2)}, "
