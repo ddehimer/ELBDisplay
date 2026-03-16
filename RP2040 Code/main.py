@@ -11,7 +11,8 @@ uart = UART(0, baudrate=115200, tx=Pin(0), rx=Pin(1))
 # ============================================================
 # I2C SETUP
 # ============================================================
-i2c = I2C(0, sda=Pin(4), scl=Pin(5), freq=100_000)
+I2C_FREQ = 25_000
+i2c = I2C(0, sda=Pin(4), scl=Pin(5), freq=I2C_FREQ)
 
 # ============================================================
 # ADS1115 CONFIG
@@ -52,6 +53,8 @@ ADC_4A = 0x4A
 DAC_60 = 0x60   # Change if A0 tied differently
 DAC_VREF = 5.0  # MCP4725 powered from +5V_VR per schematic
 DAC_DIVIDER_GAIN = 5.1 / (100.0 + 5.1)
+DEBUG_DAC = True
+DAC_WRITE_RETRIES = 3
 
 REQUIRED_I2C_DEVICES = {
     ADC_48: "ADS1115 @ 0x48",
@@ -117,6 +120,12 @@ def shunt_current(v_shunt):
 def fmt(v, digits=3):
     return f"{v:.{digits}f}" if isinstance(v, (int, float)) else "ERR"
 
+
+def reset_i2c():
+    global i2c
+    i2c = I2C(0, sda=Pin(4), scl=Pin(5), freq=I2C_FREQ)
+    return i2c.scan()
+
 # ============================================================
 # ADS READ FUNCTION
 # ============================================================
@@ -151,21 +160,41 @@ def write_dac_voltage(voltage):
     Writes a voltage (in volts) to MCP4725.
     Automatically clamps to DAC range.
     """
-    if voltage < 0:
-        voltage = 0
-    if voltage > DAC_VREF:
-        voltage = DAC_VREF
+    clamped_voltage = min(max(voltage, 0.0), DAC_VREF)
 
     # Convert voltage to 12-bit value
-    dac_value = int((voltage / DAC_VREF) * 4095)
+    dac_value = int(round((clamped_voltage / DAC_VREF) * 4095))
 
-    # Fast mode write
-    buffer = bytearray(3)
-    buffer[0] = 0x40
-    buffer[1] = dac_value >> 4
-    buffer[2] = (dac_value & 0x0F) << 4
+    # MCP4725 fast-write format:
+    # byte0 = [C2 C1 PD1 PD0 D11 D10 D9 D8], byte1 = [D7..D0]
+    buffer = bytearray(2)
+    buffer[0] = (dac_value >> 8) & 0x0F
+    buffer[1] = dac_value & 0xFF
 
-    i2c.writeto(DAC_60, buffer)
+    last_error = None
+    for attempt in range(1, DAC_WRITE_RETRIES + 1):
+        try:
+            i2c.writeto(DAC_60, buffer)
+            return clamped_voltage, dac_value, True, attempt, None
+        except OSError as exc:
+            last_error = exc
+            time.sleep_ms(10)
+            try:
+                found = reset_i2c()
+                print(
+                    "DAC WARN -> write attempt {} failed: {}. I2C scan after reset: {}".format(
+                        attempt, exc, [hex(addr) for addr in found]
+                    )
+                )
+            except OSError as scan_exc:
+                print(
+                    "DAC WARN -> write attempt {} failed: {}. I2C reset/scan failed: {}".format(
+                        attempt, exc, scan_exc
+                    )
+                )
+                time.sleep_ms(20)
+
+    return clamped_voltage, dac_value, False, DAC_WRITE_RETRIES, last_error
 def scan_i2c_or_die():
     found = i2c.scan()
     print("I2C devices found:", [hex(addr) for addr in found])
@@ -276,7 +305,7 @@ while True:
     Pyranometer = read_ads(ADC_49, CH_PYRANOMETER)
     I_SET_POT_V = read_ads(ADC_49, CH_I_SET_POT)
     # Mirror POT voltage to DAC
-    write_dac_voltage(I_SET_POT_V)
+    DAC_Command_V, DAC_Code, DAC_Write_OK, DAC_Write_Attempts, DAC_Write_Error = write_dac_voltage(I_SET_POT_V)
     CURRENT_SET_EXPECTED_V = min(max(I_SET_POT_V, 0), DAC_VREF) * DAC_DIVIDER_GAIN
     Panel_T_V   = read_ads(ADC_49, CH_PANEL_TEMP)
     VR_5V       = read_ads(ADC_49, CH_5V_VR)
@@ -307,6 +336,10 @@ while True:
         f"PYR:{fmt(Pyranometer)}, "
         f"POT%:{fmt(I_SET_Percent,1)}, "
         f"I_SET_POT:{fmt(I_SET_POT_V)}, "
+        f"DACcmd:{fmt(DAC_Command_V)}, "
+        f"DACcode:{DAC_Code}, "
+        f"DACok:{DAC_Write_OK}, "
+        f"DACtries:{DAC_Write_Attempts}, "
         f"CurrentSetExp:{fmt(CURRENT_SET_EXPECTED_V)}, "
         f"5VR:{fmt(VR_5V)}, "
         f"PanelT:{fmt(Panel_Temp,2)}, "
@@ -321,6 +354,19 @@ while True:
     uart.write(line)
 
     print(output)
+    if DEBUG_DAC:
+        if DAC_Write_OK:
+            print(
+                "DAC DEBUG -> pot_read={}V, command={}V, code={}, attempts={}".format(
+                    fmt(I_SET_POT_V), fmt(DAC_Command_V), DAC_Code, DAC_Write_Attempts
+                )
+            )
+        else:
+            print(
+                "DAC ERROR -> pot_read={}V, command={}V, code={}, attempts={}, last_error={}".format(
+                    fmt(I_SET_POT_V), fmt(DAC_Command_V), DAC_Code, DAC_Write_Attempts, DAC_Write_Error
+                )
+            )
     time.sleep(0.5)
 
     # line = "DATA,1,2,3,4,5,6\n"
