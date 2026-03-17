@@ -53,7 +53,6 @@ ADC_4A = 0x4A
 DAC_60 = 0x60   # Change if A0 tied differently
 DAC_VREF = 5.0  # MCP4725 powered from +5V_VR per schematic
 DAC_DIVIDER_GAIN = 5.1 / (100.0 + 5.1)
-DAC_OUTPUT_OFFSET_V = 0.3
 DEBUG_DAC = True
 DAC_WRITE_RETRIES = 99999999999999
 
@@ -305,10 +304,9 @@ while True:
     # -------- 0x49 --------
     Pyranometer = read_ads(ADC_49, CH_PYRANOMETER)
     I_SET_POT_V = read_ads(ADC_49, CH_I_SET_POT)
-    # Compensate for the measured DAC output offset before writing.
-    DAC_Target_V = I_SET_POT_V - DAC_OUTPUT_OFFSET_V
-    DAC_Command_V, DAC_Code, DAC_Write_OK, DAC_Write_Attempts, DAC_Write_Error = write_dac_voltage(DAC_Target_V)
-    CURRENT_SET_EXPECTED_V = min(max(DAC_Target_V, 0), DAC_VREF) * DAC_DIVIDER_GAIN
+    # Mirror POT voltage to DAC
+    DAC_Command_V, DAC_Code, DAC_Write_OK, DAC_Write_Attempts, DAC_Write_Error = write_dac_voltage(I_SET_POT_V)
+    CURRENT_SET_EXPECTED_V = min(max(I_SET_POT_V, 0), DAC_VREF) * DAC_DIVIDER_GAIN
     Panel_T_V   = read_ads(ADC_49, CH_PANEL_TEMP)
     VR_5V       = read_ads(ADC_49, CH_5V_VR)
 
