@@ -55,6 +55,14 @@ DAC_VREF = 5.0  # MCP4725 powered from +5V_VR per schematic
 DAC_DIVIDER_GAIN = 5.1 / (100.0 + 5.1)
 DEBUG_DAC = True
 DAC_WRITE_RETRIES = 99999999999999
+DAC_CAL_POINTS = (
+    (0.53, 0.0),
+    (1.44, 1.0),
+    (2.30, 2.0),
+    (3.24, 3.0),
+    (4.15, 4.0),
+    (5.00, 5.0),
+)
 
 REQUIRED_I2C_DEVICES = {
     ADC_48: "ADS1115 @ 0x48",
@@ -195,6 +203,33 @@ def write_dac_voltage(voltage):
                 time.sleep_ms(20)
 
     return clamped_voltage, dac_value, False, DAC_WRITE_RETRIES, last_error
+
+
+def calibrated_dac_target(desired_voltage):
+    """
+    Convert the desired measured DAC voltage into a corrected DAC command
+    using piecewise-linear interpolation of measured calibration points.
+    """
+    desired = min(max(desired_voltage, 0.0), DAC_VREF)
+
+    if desired <= DAC_CAL_POINTS[0][0]:
+        return DAC_CAL_POINTS[0][1]
+
+    for index in range(1, len(DAC_CAL_POINTS)):
+        measured_low, command_low = DAC_CAL_POINTS[index - 1]
+        measured_high, command_high = DAC_CAL_POINTS[index]
+
+        if desired <= measured_high:
+            span = measured_high - measured_low
+            if span <= 0:
+                return command_high
+
+            fraction = (desired - measured_low) / span
+            return command_low + (fraction * (command_high - command_low))
+
+    return DAC_CAL_POINTS[-1][1]
+
+
 def scan_i2c_or_die():
     found = i2c.scan()
     print("I2C devices found:", [hex(addr) for addr in found])
@@ -304,8 +339,9 @@ while True:
     # -------- 0x49 --------
     Pyranometer = read_ads(ADC_49, CH_PYRANOMETER)
     I_SET_POT_V = read_ads(ADC_49, CH_I_SET_POT)
-    # Mirror POT voltage to DAC
-    DAC_Command_V, DAC_Code, DAC_Write_OK, DAC_Write_Attempts, DAC_Write_Error = write_dac_voltage(I_SET_POT_V)
+    # Pre-distort the DAC command so the measured output better matches the pot.
+    DAC_Target_V = calibrated_dac_target(I_SET_POT_V)
+    DAC_Command_V, DAC_Code, DAC_Write_OK, DAC_Write_Attempts, DAC_Write_Error = write_dac_voltage(DAC_Target_V)
     CURRENT_SET_EXPECTED_V = min(max(I_SET_POT_V, 0), DAC_VREF) * DAC_DIVIDER_GAIN
     Panel_T_V   = read_ads(ADC_49, CH_PANEL_TEMP)
     VR_5V       = read_ads(ADC_49, CH_5V_VR)
