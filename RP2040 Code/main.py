@@ -54,7 +54,7 @@ DAC_60 = 0x60   # Change if A0 tied differently
 DAC_VREF = 5.0  # MCP4725 powered from +5V_VR per schematic
 DAC_DIVIDER_GAIN = 5.1 / (100.0 + 5.1)
 DEBUG_DAC = True
-DAC_WRITE_RETRIES = 3
+DAC_WRITE_RETRIES = 99999999999999
 
 REQUIRED_I2C_DEVICES = {
     ADC_48: "ADS1115 @ 0x48",
