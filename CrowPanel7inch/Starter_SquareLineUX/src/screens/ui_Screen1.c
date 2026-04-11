@@ -154,7 +154,7 @@ void ui_Screen1_screen_init(void)
     lv_chart_set_point_count(ui_Chart6, 50);
     lv_chart_set_range(ui_Chart6, LV_CHART_AXIS_PRIMARY_Y, 175, 250);
     lv_chart_set_range(ui_Chart6, LV_CHART_AXIS_SECONDARY_Y, 0, 500);
-    lv_chart_set_axis_tick(ui_Chart6, LV_CHART_AXIS_PRIMARY_X, 10, 5, 10, 2, true, 50);
+    lv_chart_set_axis_tick(ui_Chart6, LV_CHART_AXIS_PRIMARY_X, 10, 5, 4, 2, true, 50);
     lv_chart_set_axis_tick(ui_Chart6, LV_CHART_AXIS_PRIMARY_Y, 10, 5, 5, 2, true, 50);
     lv_chart_set_axis_tick(ui_Chart6, LV_CHART_AXIS_SECONDARY_Y, 10, 5, 5, 2, true, 25);
     lv_chart_series_t * ui_Chart6_series_1 = lv_chart_add_series(ui_Chart6, lv_color_hex(0xE610E2),
