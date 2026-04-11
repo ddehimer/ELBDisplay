@@ -403,8 +403,8 @@ while True:
                     fmt(I_SET_POT_V), fmt(DAC_Command_V), DAC_Code, DAC_Write_Attempts, DAC_Write_Error
                 )
             )
-    time.sleep(0.5)
+    time.sleep(180)
 
     # line = "DATA,1,2,3,4,5,6\n"
     # uart.write(line)
-    # time.sleep(0.5)
+    # time.sleep(180)

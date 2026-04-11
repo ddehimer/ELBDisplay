@@ -119,18 +119,19 @@ bool sd_export_combined_csv(const char* name_raw, const char* date_raw,
     return false;
   }
 
-  f.println("index,t_s,TestBattery_V,TestBattery_A,Power_W,AuxCurrent_s1,Temp_s1,Temp_s2");
+  f.println("index,t_s,TestBattery_V,TestBattery_A,Power_W,Energy_Wh,AuxCurrent_s1,Temp_s1,Temp_s2");
 
   for (size_t i = 0; i < count; i++) {
     Sample s{};
     if (!dm_get_oldest(i, s)) continue;
 
-    f.printf("%u,%lu,%d,%d,%d,%d,%d,%d\n",
+    f.printf("%u,%lu,%d,%d,%d,%.3f,%d,%d,%d\n",
              (unsigned)i,
              (unsigned long)s.t_s,
              (int)s.testBattery_s1,
              (int)s.testBattery_s2,
              (int)s.power_w,
+             (double)s.energy_wh_milli / 1000.0,
              (int)s.auxCurrent_s1,
              (int)s.temperatures_s1,
              (int)s.temperatures_s2);

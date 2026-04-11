@@ -7,6 +7,7 @@ struct Sample {
   int16_t testBattery_s1;
   int16_t testBattery_s2;
   int16_t power_w;
+  int32_t energy_wh_milli;
   int16_t auxCurrent_s1;
   int16_t temperatures_s1;
   int16_t temperatures_s2;

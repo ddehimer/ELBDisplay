@@ -30,6 +30,7 @@ static uint32_t g_export_status_reset_ms = 0;
 static float g_last_ui_tbv = NAN;
 static float g_last_ui_tbc = NAN;
 static float g_last_ui_power = NAN;
+static float g_last_ui_energy = NAN;
 static float g_last_ui_ab = NAN;
 static float g_last_ui_hst = NAN;
 static float g_last_ui_tbt = NAN;
@@ -40,16 +41,20 @@ static bool g_has_uart_sample = false;
 static float g_last_tb1 = 0.0f;
 static float g_last_tb2 = 0.0f;
 static float g_last_power_w = 0.0f;
+static float g_last_energy_wh = 0.0f;
 static float g_last_aux = 0.0f;
 static float g_last_t1 = 0.0f;
 static float g_last_t2 = 0.0f;
 static float g_last_pot = 0.0f;
+static uint32_t g_last_power_sample_ms = 0;
+static bool g_has_power_timestamp = false;
 
 // ----------------------------------------------------
 // UART data parser (RP2040 -> ESP32)
 // Expected line: DATA,<tb_v>,<tb_a>,<aux_a>,<sink_t_c>,<batt_t_c>,<pot_v>\n
 // ----------------------------------------------------
 static constexpr size_t UART_LINE_MAX = 96;
+static constexpr uint32_t BUFFER_SAMPLE_INTERVAL_MS = 180000UL;
 static char g_uart_line[UART_LINE_MAX];
 static size_t g_uart_len = 0;
 
@@ -158,6 +163,7 @@ static void ui_sync_test_battery_title_values()
   const float tbv = g_last_tb1;
   const float tbc = g_last_tb2;
   const float power = g_last_power_w;
+  const float energy = g_last_energy_wh;
   const float ab = g_last_aux;
   const float hst = g_last_t1;
   const float tbt = g_last_t2;
@@ -176,6 +182,11 @@ static void ui_sync_test_battery_title_values()
   if (value_changed(g_last_ui_power, power)) {
     ui_set_value_label(ui_Pvalue, power, " W");
     g_last_ui_power = power;
+  }
+
+  if (value_changed(g_last_ui_energy, energy)) {
+    ui_set_value_label(ui_Evalue, energy, " Wh");
+    g_last_ui_energy = energy;
   }
 
   if (value_changed(g_last_ui_ab, ab)) {
@@ -231,8 +242,18 @@ static void handle_uart_line(const char* line)
   float tb_v, tb_a, aux_a, sink_t_c, batt_t_c, pot_v;
   if (!parse_data_line(line, tb_v, tb_a, aux_a, sink_t_c, batt_t_c, pot_v)) return;
 
+  const uint32_t now_ms = millis();
+
   // Update latest UART sample for ring buffer
   const float power_w = roundf((tb_v * tb_a) * 1000.0f) / 1000.0f;
+  if (g_has_power_timestamp) {
+    const float dt_h = (float)(now_ms - g_last_power_sample_ms) / 3600000.0f;
+    g_last_energy_wh = roundf((g_last_energy_wh + (power_w * dt_h)) * 1000.0f) / 1000.0f;
+  } else {
+    g_has_power_timestamp = true;
+  }
+  g_last_power_sample_ms = now_ms;
+
   g_last_tb1 = tb_v;
   g_last_tb2 = tb_a;
   g_last_power_w = power_w;
@@ -245,6 +266,7 @@ static void handle_uart_line(const char* line)
   chart_push_value(ui_Chart2, 0, tb_v);
   chart_push_value(ui_Chart2, 1, tb_a);
   chart_push_value(ui_Chart6, 0, power_w);
+  chart_push_value(ui_Chart6, 1, g_last_energy_wh);
   chart_push_value(ui_Chart1, 0, aux_a);
   chart_push_value(ui_Chart3, 0, sink_t_c);
   chart_push_value(ui_Chart3, 1, batt_t_c);
@@ -456,7 +478,7 @@ void loop()
     g_sd_status_printed = true;
   }
 
-  if ((now - g_last_sample_ms) >= 5000UL)
+  if ((now - g_last_sample_ms) >= BUFFER_SAMPLE_INTERVAL_MS)
   {
     g_last_sample_ms = now;
 
@@ -467,6 +489,7 @@ void loop()
       s.testBattery_s1 = (int16_t)lroundf(g_last_tb1);
       s.testBattery_s2 = (int16_t)lroundf(g_last_tb2);
       s.power_w = (int16_t)lroundf(g_last_power_w);
+      s.energy_wh_milli = (int32_t)lroundf(g_last_energy_wh * 1000.0f);
       s.auxCurrent_s1 = (int16_t)lroundf(g_last_aux);
       s.temperatures_s1 = (int16_t)lroundf(g_last_t1);
       s.temperatures_s2 = (int16_t)lroundf(g_last_t2);
