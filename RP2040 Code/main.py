@@ -130,6 +130,21 @@ def fmt(v, digits=3):
     return f"{v:.{digits}f}" if isinstance(v, (int, float)) else "ERR"
 
 
+def read_uart_command():
+    if not uart.any():
+        return None
+
+    raw = uart.readline()
+    if not raw:
+        return None
+
+    if isinstance(raw, bytes):
+        raw = raw.decode("utf-8", "ignore")
+
+    cmd = raw.strip().upper()
+    return cmd or None
+
+
 def reset_i2c():
     global i2c
     i2c = I2C(0, sda=Pin(4), scl=Pin(5), freq=I2C_FREQ)
@@ -325,11 +340,28 @@ def read_shunt_current(addr, channel):
 # MAIN LOOP
 # ============================================================
 scan_i2c_or_die()
-SHUNT_ZERO = calibrate_shunt_zero(ADC_48)
+SHUNT_ZERO = 0.0
+drawdown_active = False
 
-print("Starting telemetry loop...\n")
+print("Waiting for START command...\n")
 
 while True:
+    command = read_uart_command()
+    if command == "START":
+        if not drawdown_active:
+            print("Draw down test starting. Recalibrating shunt zero...")
+            SHUNT_ZERO = calibrate_shunt_zero(ADC_48)
+            drawdown_active = True
+            uart.write("STATUS,ACTIVE\n")
+    elif command == "STOP":
+        if drawdown_active:
+            print("Draw down test stopped.")
+            drawdown_active = False
+            uart.write("STATUS,IDLE\n")
+
+    if not drawdown_active:
+        time.sleep_ms(100)
+        continue
 
     # -------- 0x48 --------
     V_Sense     = read_ads(ADC_48, CH_V_SENSE)
@@ -340,6 +372,7 @@ while True:
     # -------- 0x49 --------
     Pyranometer = read_ads(ADC_49, CH_PYRANOMETER)
     I_SET_POT_V = read_ads(ADC_49, CH_I_SET_POT)
+
     # Pre-distort the DAC command so the measured output better matches the pot.
     DAC_Target_V = calibrated_dac_target(I_SET_POT_V)
     DAC_Command_V, DAC_Code, DAC_Write_OK, DAC_Write_Attempts, DAC_Write_Error = write_dac_voltage(DAC_Target_V)

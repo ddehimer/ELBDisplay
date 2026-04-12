@@ -55,6 +55,8 @@ extern lv_obj_t * ui_Date;
 extern lv_obj_t * ui_Button1;
 extern lv_obj_t * ui_Label14;
 extern lv_obj_t * ui_Settings;
+extern lv_obj_t * ui_Label2;
+extern lv_obj_t * ui_startButton;
 extern lv_obj_t * ui_Keyboard3;
 // CUSTOM VARIABLES
 extern lv_obj_t * uic_Screen1;

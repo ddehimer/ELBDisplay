@@ -50,6 +50,8 @@ lv_obj_t * ui_Date = NULL;
 lv_obj_t * ui_Button1 = NULL;
 lv_obj_t * ui_Label14 = NULL;
 lv_obj_t * ui_Settings = NULL;
+lv_obj_t * ui_Label2 = NULL;
+lv_obj_t * ui_startButton = NULL;
 lv_obj_t * ui_Keyboard3 = NULL;
 // event funtions
 
@@ -431,6 +433,25 @@ void ui_Screen1_screen_init(void)
 
     ui_Settings = lv_tabview_add_tab(ui_TabView1, "Settings");
 
+    ui_Label2 = lv_label_create(ui_Settings);
+    lv_obj_set_width(ui_Label2, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_Label2, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_Label2, 35);
+    lv_obj_set_y(ui_Label2, 0);
+    lv_label_set_text(ui_Label2, "Start");
+    lv_obj_set_style_text_color(ui_Label2, lv_color_hex(0x060101), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_Label2, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_startButton = lv_btn_create(ui_Settings);
+    lv_obj_set_width(ui_startButton, 100);
+    lv_obj_set_height(ui_startButton, 50);
+    lv_obj_set_x(ui_startButton, 0);
+    lv_obj_set_y(ui_startButton, 20);
+    lv_obj_add_flag(ui_startButton, LV_OBJ_FLAG_SCROLL_ON_FOCUS);     /// Flags
+    lv_obj_clear_flag(ui_startButton, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+    lv_obj_set_style_text_color(ui_startButton, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_startButton, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+
     ui_Keyboard3 = lv_keyboard_create(ui_TabView1);
     lv_obj_set_width(ui_Keyboard3, 775);
     lv_obj_set_height(ui_Keyboard3, 250);
@@ -494,6 +515,8 @@ void ui_Screen1_screen_destroy(void)
     ui_Button1 = NULL;
     ui_Label14 = NULL;
     ui_Settings = NULL;
+    ui_Label2 = NULL;
+    ui_startButton = NULL;
     ui_Keyboard3 = NULL;
 
 }

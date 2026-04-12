@@ -356,6 +356,17 @@ static void export_event_cb(lv_event_t* e)
 }
 
 // ----------------------------------------------------
+// Start button callback
+// ----------------------------------------------------
+static void start_event_cb(lv_event_t* e)
+{
+  if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
+
+  Serial1.print("START\n");
+  Serial.println("Sent START command to RP2040.");
+}
+
+// ----------------------------------------------------
 // On-screen keyboard callback (TextArea -> Keyboard)
 // ----------------------------------------------------
 static void textarea_event_cb(lv_event_t * e)
@@ -435,6 +446,7 @@ void setup()
   // Export button hookup
   // -----------------------------
   lv_obj_add_event_cb(ui_Button1, export_event_cb, LV_EVENT_CLICKED, NULL);
+  lv_obj_add_event_cb(ui_startButton, start_event_cb, LV_EVENT_CLICKED, NULL);
 
   lv_timer_handler();
 
