@@ -7,6 +7,7 @@ import math
 # UART SETUP
 # ============================================================
 uart = UART(0, baudrate=115200, tx=Pin(0), rx=Pin(1))
+UART_SAMPLE_INTERVAL_S = 30
 
 # ============================================================
 # I2C SETUP
@@ -403,8 +404,8 @@ while True:
                     fmt(I_SET_POT_V), fmt(DAC_Command_V), DAC_Code, DAC_Write_Attempts, DAC_Write_Error
                 )
             )
-    time.sleep(180)
+    time.sleep(UART_SAMPLE_INTERVAL_S)
 
     # line = "DATA,1,2,3,4,5,6\n"
     # uart.write(line)
-    # time.sleep(180)
+    # time.sleep(UART_SAMPLE_INTERVAL_S)
