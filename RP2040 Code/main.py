@@ -7,6 +7,7 @@ import math
 # UART SETUP
 # ============================================================
 uart = UART(0, baudrate=115200, tx=Pin(0), rx=Pin(1))
+start_led = Pin("LED", Pin.OUT)
 UART_SAMPLE_INTERVAL_S = 30
 
 # ============================================================
@@ -143,6 +144,12 @@ def read_uart_command():
 
     cmd = raw.strip().upper()
     return cmd or None
+
+
+def blink_start_led():
+    start_led.on()
+    time.sleep_ms(200)
+    start_led.off()
 
 
 def reset_i2c():
@@ -349,6 +356,7 @@ while True:
     command = read_uart_command()
     if command == "START":
         if not drawdown_active:
+            blink_start_led()
             print("Draw down test starting. Recalibrating shunt zero...")
             SHUNT_ZERO = calibrate_shunt_zero(ADC_48)
             drawdown_active = True
