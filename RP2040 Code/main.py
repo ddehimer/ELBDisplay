@@ -109,12 +109,12 @@ BETA = 3950.0
 HALL_V_PER_AMP = 0.150  # <-- replace with measured value if needed
 
 # ============================================================
-# SHUNT CONSTANT (20A / 75mV)
+# SHUNT CONSTANT (30A / 75mV)
 # ============================================================
-SHUNT_RESISTANCE = 0.00375  # ohms
+SHUNT_RESISTANCE = 0.0025  # ohms
 
 # ============================================================
-# SHUNT CURRENT FUNCTION (20A / 75mV)
+# SHUNT CURRENT FUNCTION (30A / 75mV)
 # ============================================================
 def shunt_current(v_shunt):
     """
@@ -295,7 +295,7 @@ def calibrate_shunt_zero(addr):
     return zero
 
 # ============================================================
-# HIGH RESOLUTION SHUNT READ (20A / 75mV)
+# HIGH RESOLUTION SHUNT READ (30A / 75mV)
 # ============================================================
 def read_shunt_current(addr, channel):
     """
@@ -318,8 +318,8 @@ def read_shunt_current(addr, channel):
     lsb = 0.256 / 32768.0
     v_shunt = raw * lsb
 
-    # 20A / 75mV shunt
-    return (v_shunt - SHUNT_ZERO) / 0.00375
+    # 30A / 75mV shunt
+    return (v_shunt - SHUNT_ZERO) / SHUNT_RESISTANCE
 
 # ============================================================
 # MAIN LOOP
