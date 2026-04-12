@@ -126,6 +126,13 @@ static void ui_schedule_export_status_idle(uint32_t now_ms)
   g_export_status_reset_ms = now_ms + 10000UL;
 }
 
+static void ui_set_start_status(const char* text, lv_color_t color)
+{
+  if (!ui_Label2 || !text) return;
+  lv_label_set_text(ui_Label2, text);
+  lv_obj_set_style_text_color(ui_Label2, color, LV_PART_MAIN | LV_STATE_DEFAULT);
+}
+
 static void chart_push_value(lv_obj_t* chart, uint16_t series_idx, float v)
 {
   lv_chart_series_t* series = chart_series_by_index(chart, series_idx);
@@ -239,6 +246,22 @@ static bool parse_data_line(const char* line,
 
 static void handle_uart_line(const char* line)
 {
+  if (!line) return;
+
+  if (strncmp(line, "STATUS,", 7) == 0) {
+    const char* status = line + 7;
+    Serial.printf("RP2040 status: %s\n", status);
+
+    if (strcmp(status, "ACTIVE") == 0) {
+      ui_set_start_status("Start: ACTIVE", lv_palette_main(LV_PALETTE_GREEN));
+    } else if (strcmp(status, "IDLE") == 0) {
+      ui_set_start_status("Start: IDLE", lv_palette_main(LV_PALETTE_GREY));
+    } else {
+      ui_set_start_status("Start: STATUS", lv_palette_main(LV_PALETTE_BLUE));
+    }
+    return;
+  }
+
   float tb_v, tb_a, aux_a, sink_t_c, batt_t_c, pot_v;
   if (!parse_data_line(line, tb_v, tb_a, aux_a, sink_t_c, batt_t_c, pot_v)) return;
 
@@ -362,7 +385,12 @@ static void start_event_cb(lv_event_t* e)
 {
   if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
 
-  Serial1.print("START\n");
+  ui_set_start_status("Start: sent", lv_palette_main(LV_PALETTE_ORANGE));
+  for (int i = 0; i < 3; ++i) {
+    Serial1.print("START\n");
+    Serial1.flush();
+    delay(20);
+  }
   Serial.println("Sent START command to RP2040.");
 }
 
@@ -430,6 +458,7 @@ void setup()
   g_sd_ok = sd_init();
   ui_set_sd_status(g_sd_ok);
   ui_set_export_status_idle();
+  ui_set_start_status("Start", lv_color_hex(0x060101));
   g_export_status_reset_ms = 0;
   Serial.printf("SD status: %s\n", g_sd_ok ? "OK" : "NOT OK");
   Serial.flush();

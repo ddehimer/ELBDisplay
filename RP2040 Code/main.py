@@ -131,6 +131,12 @@ def fmt(v, digits=3):
     return f"{v:.{digits}f}" if isinstance(v, (int, float)) else "ERR"
 
 
+def numeric_or_zero(v):
+    if isinstance(v, (int, float)) and math.isfinite(v):
+        return v
+    return 0.0
+
+
 def read_uart_command():
     if not uart.any():
         return None
@@ -427,7 +433,14 @@ while True:
         f"AuxI:{fmt(AuxI)}A"
     )
 
-    line = "DATA,{},{},{},{},{},{}\n".format(TestV, TestI, AuxI, Sink_Temp, Batt_Temp, I_SET_POT_V)
+    line = "DATA,{},{},{},{},{},{}\n".format(
+        numeric_or_zero(TestV),
+        numeric_or_zero(TestI),
+        numeric_or_zero(AuxI),
+        numeric_or_zero(Sink_Temp),
+        numeric_or_zero(Batt_Temp),
+        numeric_or_zero(I_SET_POT_V),
+    )
     print (line)
     uart.write(line)
 
