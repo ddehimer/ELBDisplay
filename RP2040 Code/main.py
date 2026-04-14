@@ -314,7 +314,7 @@ def calibrate_shunt_zero(addr):
     samples = 100
 
     for _ in range(samples):
-        total += read_ads(addr, CH_V_SENSE)
+        total += read_shunt_voltage(addr, CH_V_SENSE)
         time.sleep_ms(5)
 
     zero = total / samples
@@ -325,7 +325,7 @@ def calibrate_shunt_zero(addr):
 # ============================================================
 # HIGH RESOLUTION SHUNT READ (30A / 75mV)
 # ============================================================
-def read_shunt_current(addr, channel):
+def read_shunt_voltage(addr, channel):
     """
     Reads shunt voltage using ±0.256V PGA for high resolution.
     Does NOT affect other ADC channels.
@@ -344,7 +344,13 @@ def read_shunt_current(addr, channel):
 
     # LSB for ±0.256V
     lsb = 0.256 / 32768.0
-    v_shunt = raw * lsb
+    return raw * lsb
+
+# ============================================================
+# HIGH RESOLUTION SHUNT READ (30A / 75mV)
+# ============================================================
+def read_shunt_current(addr, channel):
+    v_shunt = read_shunt_voltage(addr, channel)
 
     # 30A / 75mV shunt
     return (v_shunt - SHUNT_ZERO) / SHUNT_RESISTANCE
