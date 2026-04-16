@@ -128,9 +128,9 @@ static void ui_schedule_export_status_idle(uint32_t now_ms)
 
 static void ui_set_start_status(const char* text, lv_color_t color)
 {
-  if (!ui_Label2 || !text) return;
-  lv_label_set_text(ui_Label2, text);
-  lv_obj_set_style_text_color(ui_Label2, color, LV_PART_MAIN | LV_STATE_DEFAULT);
+  if (!ui_startLabel || !text) return;
+  lv_label_set_text(ui_startLabel, text);
+  lv_obj_set_style_text_color(ui_startLabel, color, LV_PART_MAIN | LV_STATE_DEFAULT);
 }
 
 static void chart_push_value(lv_obj_t* chart, uint16_t series_idx, float v)
