@@ -8,7 +8,7 @@ import math
 # ============================================================
 uart = UART(0, baudrate=115200, tx=Pin(0), rx=Pin(1))
 start_led = Pin("LED", Pin.OUT)
-UART_SAMPLE_INTERVAL_S = 300
+LIVE_VALUE_SAMPLE_INTERVAL_S = 30
 
 # ============================================================
 # I2C SETUP
@@ -113,6 +113,16 @@ HALL_V_PER_AMP = 0.150  # <-- replace with measured value if needed
 # SHUNT CONSTANT (30A / 75mV)
 # ============================================================
 SHUNT_RESISTANCE = 0.0025  # ohms
+
+# ============================================================
+# TEST BATTERY CALIBRATION
+# Derived from measured values:
+#   voltage: 12.1 V actual vs 11.8 V displayed
+#   current: 8.4 A actual vs 11.6 A displayed
+# ============================================================
+TEST_BATTERY_DIVIDER_RATIO = 11.0
+TEST_BATTERY_VOLTAGE_CAL = 12.1 / 11.8
+TEST_BATTERY_CURRENT_CAL = 8.4 / 11.6
 
 # ============================================================
 # SHUNT CURRENT FUNCTION (30A / 75mV)
@@ -353,7 +363,7 @@ def read_shunt_current(addr, channel):
     v_shunt = read_shunt_voltage(addr, channel)
 
     # 30A / 75mV shunt
-    return (v_shunt - SHUNT_ZERO) / SHUNT_RESISTANCE
+    return ((v_shunt - SHUNT_ZERO) / SHUNT_RESISTANCE) * TEST_BATTERY_CURRENT_CAL
 
 # ============================================================
 # MAIN LOOP
@@ -415,7 +425,7 @@ while True:
     I_SET_Percent = (I_SET_POT_V / VR_5V) * 100.0
 
     TestI = read_shunt_current(ADC_48, CH_V_SENSE)
-    TestV = 11*Test_V1_Div
+    TestV = Test_V1_Div * TEST_BATTERY_DIVIDER_RATIO * TEST_BATTERY_VOLTAGE_CAL
 
     # -------- Output --------
     output = (
@@ -464,8 +474,8 @@ while True:
                     fmt(I_SET_POT_V), fmt(DAC_Command_V), DAC_Code, DAC_Write_Attempts, DAC_Write_Error
                 )
             )
-    time.sleep(UART_SAMPLE_INTERVAL_S)
+    time.sleep(LIVE_VALUE_SAMPLE_INTERVAL_S)
 
     # line = "DATA,1,2,3,4,5,6\n"
     # uart.write(line)
-    # time.sleep(UART_SAMPLE_INTERVAL_S)
+    # time.sleep(LIVE_VALUE_SAMPLE_INTERVAL_S)

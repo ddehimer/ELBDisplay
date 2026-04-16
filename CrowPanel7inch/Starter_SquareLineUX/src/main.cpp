@@ -47,18 +47,31 @@ static float g_last_t1 = 0.0f;
 static float g_last_t2 = 0.0f;
 static float g_last_pot = 0.0f;
 static uint32_t g_last_power_sample_ms = 0;
+static uint32_t g_last_chart_sample_ms = 0;
 static bool g_has_power_timestamp = false;
+static bool g_has_chart_sample = false;
 
 // ----------------------------------------------------
 // UART data parser (RP2040 -> ESP32)
 // Expected line: DATA,<tb_v>,<tb_a>,<aux_a>,<sink_t_c>,<batt_t_c>,<pot_v>\n
 // ----------------------------------------------------
 static constexpr size_t UART_LINE_MAX = 96;
-static constexpr uint32_t BUFFER_SAMPLE_INTERVAL_MS = 300000UL;
+static constexpr uint32_t CHART_BUFFER_SAMPLE_INTERVAL_MS = 300000UL;
+static constexpr uint16_t CHART_POINT_COUNT = 36;
 static char g_uart_line[UART_LINE_MAX];
 static size_t g_uart_len = 0;
 
+static lv_coord_t g_chart2_series0[CHART_POINT_COUNT];
+static lv_coord_t g_chart2_series1[CHART_POINT_COUNT];
+static lv_coord_t g_chart6_series0[CHART_POINT_COUNT];
+static lv_coord_t g_chart6_series1[CHART_POINT_COUNT];
+static lv_coord_t g_chart1_series0[CHART_POINT_COUNT];
+static lv_coord_t g_chart3_series0[CHART_POINT_COUNT];
+static lv_coord_t g_chart3_series1[CHART_POINT_COUNT];
+
 static lv_chart_series_t* chart_series_by_index(lv_obj_t* chart, uint16_t idx);
+static void chart_bind_series_buffer(lv_obj_t* chart, uint16_t idx, lv_coord_t* buffer, uint16_t count);
+static void chart_configure_for_time_series(lv_obj_t* chart);
 
 static void diag_line(const char* msg)
 {
@@ -286,19 +299,25 @@ static void handle_uart_line(const char* line)
   g_last_pot = pot_v;
   g_has_uart_sample = true;
 
-  chart_push_value(ui_Chart2, 0, tb_v);
-  chart_push_value(ui_Chart2, 1, tb_a);
-  chart_push_value(ui_Chart6, 0, power_w);
-  chart_push_value(ui_Chart6, 1, g_last_energy_wh);
-  chart_push_value(ui_Chart1, 0, aux_a);
-  chart_push_value(ui_Chart3, 0, sink_t_c);
-  chart_push_value(ui_Chart3, 1, batt_t_c);
-
-  lv_chart_refresh(ui_Chart2);
-  lv_chart_refresh(ui_Chart6);
-  lv_chart_refresh(ui_Chart1);
-  lv_chart_refresh(ui_Chart3);
   ui_sync_test_battery_title_values();
+
+  if (!g_has_chart_sample || (now_ms - g_last_chart_sample_ms) >= CHART_BUFFER_SAMPLE_INTERVAL_MS) {
+    g_last_chart_sample_ms = now_ms;
+    g_has_chart_sample = true;
+
+    chart_push_value(ui_Chart2, 0, tb_v);
+    chart_push_value(ui_Chart2, 1, tb_a);
+    chart_push_value(ui_Chart6, 0, power_w);
+    chart_push_value(ui_Chart6, 1, g_last_energy_wh);
+    chart_push_value(ui_Chart1, 0, aux_a);
+    chart_push_value(ui_Chart3, 0, sink_t_c);
+    chart_push_value(ui_Chart3, 1, batt_t_c);
+
+    lv_chart_refresh(ui_Chart2);
+    lv_chart_refresh(ui_Chart6);
+    lv_chart_refresh(ui_Chart1);
+    lv_chart_refresh(ui_Chart3);
+  }
 }
 
 static lv_chart_series_t* chart_series_by_index(lv_obj_t* chart, uint16_t idx)
@@ -317,12 +336,37 @@ static void chart_clear_all(lv_obj_t* chart)
 {
   if (!chart) return;
 
+  lv_chart_set_x_start_point(chart, NULL, 0);
+
   lv_chart_series_t* series = NULL;
   while ((series = lv_chart_get_series_next(chart, series)) != NULL)
   {
     lv_chart_set_all_value(chart, series, LV_CHART_POINT_NONE);
   }
   lv_chart_refresh(chart);
+}
+
+static void chart_bind_series_buffer(lv_obj_t* chart, uint16_t idx, lv_coord_t* buffer, uint16_t count)
+{
+  if (!chart || !buffer || count == 0) return;
+
+  for (uint16_t i = 0; i < count; ++i) {
+    buffer[i] = LV_CHART_POINT_NONE;
+  }
+
+  lv_chart_series_t* series = chart_series_by_index(chart, idx);
+  if (!series) return;
+
+  lv_chart_set_ext_y_array(chart, series, buffer);
+}
+
+static void chart_configure_for_time_series(lv_obj_t* chart)
+{
+  if (!chart) return;
+
+  lv_chart_set_point_count(chart, CHART_POINT_COUNT);
+  lv_chart_set_update_mode(chart, LV_CHART_UPDATE_MODE_SHIFT);
+  lv_chart_set_x_start_point(chart, NULL, 0);
 }
 
 // ----------------------------------------------------
@@ -446,6 +490,19 @@ void setup()
   dm_init();
   g_last_sample_ms = millis();
 
+  chart_configure_for_time_series(ui_Chart2);
+  chart_configure_for_time_series(ui_Chart6);
+  chart_configure_for_time_series(ui_Chart1);
+  chart_configure_for_time_series(ui_Chart3);
+
+  chart_bind_series_buffer(ui_Chart2, 0, g_chart2_series0, CHART_POINT_COUNT);
+  chart_bind_series_buffer(ui_Chart2, 1, g_chart2_series1, CHART_POINT_COUNT);
+  chart_bind_series_buffer(ui_Chart6, 0, g_chart6_series0, CHART_POINT_COUNT);
+  chart_bind_series_buffer(ui_Chart6, 1, g_chart6_series1, CHART_POINT_COUNT);
+  chart_bind_series_buffer(ui_Chart1, 0, g_chart1_series0, CHART_POINT_COUNT);
+  chart_bind_series_buffer(ui_Chart3, 0, g_chart3_series0, CHART_POINT_COUNT);
+  chart_bind_series_buffer(ui_Chart3, 1, g_chart3_series1, CHART_POINT_COUNT);
+
   // Clear chart placeholders so UART data is the only visible source
   chart_clear_all(ui_Chart2);
   chart_clear_all(ui_Chart6);
@@ -519,7 +576,7 @@ void loop()
     g_sd_status_printed = true;
   }
 
-  if ((now - g_last_sample_ms) >= BUFFER_SAMPLE_INTERVAL_MS)
+  if ((now - g_last_sample_ms) >= CHART_BUFFER_SAMPLE_INTERVAL_MS)
   {
     g_last_sample_ms = now;
 

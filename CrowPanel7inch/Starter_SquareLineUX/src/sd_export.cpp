@@ -119,7 +119,7 @@ bool sd_export_combined_csv(const char* name_raw, const char* date_raw,
     return false;
   }
 
-  f.println("index,t_s,TestBattery_V,TestBattery_A,Power_W,Energy_Wh,AuxCurrent_s1,Temp_s1,Temp_s2");
+  f.println("index,t_s,TestBattery_V,TestBattery_A,Power_W,Energy_Wh,AuxCurrent_A,HeatsinkTemp_C,BatteryTemp_C");
 
   for (size_t i = 0; i < count; i++) {
     Sample s{};
