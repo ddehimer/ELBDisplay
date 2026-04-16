@@ -8,7 +8,7 @@ import math
 # ============================================================
 uart = UART(0, baudrate=115200, tx=Pin(0), rx=Pin(1))
 start_led = Pin("LED", Pin.OUT)
-UART_SAMPLE_INTERVAL_S = 60
+UART_SAMPLE_INTERVAL_S = 300
 
 # ============================================================
 # I2C SETUP
