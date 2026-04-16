@@ -72,6 +72,7 @@ static lv_coord_t g_chart3_series1[CHART_POINT_COUNT];
 static lv_chart_series_t* chart_series_by_index(lv_obj_t* chart, uint16_t idx);
 static void chart_bind_series_buffer(lv_obj_t* chart, uint16_t idx, lv_coord_t* buffer, uint16_t count);
 static void chart_configure_for_time_series(lv_obj_t* chart);
+static void chart_reset_start_points(lv_obj_t* chart);
 
 static void diag_line(const char* msg)
 {
@@ -336,7 +337,7 @@ static void chart_clear_all(lv_obj_t* chart)
 {
   if (!chart) return;
 
-  lv_chart_set_x_start_point(chart, NULL, 0);
+  chart_reset_start_points(chart);
 
   lv_chart_series_t* series = NULL;
   while ((series = lv_chart_get_series_next(chart, series)) != NULL)
@@ -366,7 +367,18 @@ static void chart_configure_for_time_series(lv_obj_t* chart)
 
   lv_chart_set_point_count(chart, CHART_POINT_COUNT);
   lv_chart_set_update_mode(chart, LV_CHART_UPDATE_MODE_SHIFT);
-  lv_chart_set_x_start_point(chart, NULL, 0);
+  chart_reset_start_points(chart);
+}
+
+static void chart_reset_start_points(lv_obj_t* chart)
+{
+  if (!chart) return;
+
+  lv_chart_series_t* series = NULL;
+  while ((series = lv_chart_get_series_next(chart, series)) != NULL)
+  {
+    lv_chart_set_x_start_point(chart, series, 0);
+  }
 }
 
 // ----------------------------------------------------
