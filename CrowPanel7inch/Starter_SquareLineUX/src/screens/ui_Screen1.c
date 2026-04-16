@@ -50,7 +50,7 @@ lv_obj_t * ui_Date = NULL;
 lv_obj_t * ui_Button1 = NULL;
 lv_obj_t * ui_Label14 = NULL;
 lv_obj_t * ui_Settings = NULL;
-lv_obj_t * ui_Label2 = NULL;
+lv_obj_t * ui_startLabel = NULL;
 lv_obj_t * ui_startButton = NULL;
 lv_obj_t * ui_Keyboard3 = NULL;
 // event funtions
@@ -76,7 +76,7 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_x(ui_Chart2, 30);
     lv_obj_set_y(ui_Chart2, 10);
     lv_chart_set_type(ui_Chart2, LV_CHART_TYPE_LINE);
-    lv_chart_set_point_count(ui_Chart2, 50);
+    lv_chart_set_point_count(ui_Chart2, 60);
     lv_chart_set_range(ui_Chart2, LV_CHART_AXIS_PRIMARY_Y, 6, 18);
     lv_chart_set_range(ui_Chart2, LV_CHART_AXIS_SECONDARY_Y, 9, 27);
     lv_chart_set_axis_tick(ui_Chart2, LV_CHART_AXIS_PRIMARY_X, 10, 5, 4, 2, true, 50);
@@ -153,7 +153,7 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_x(ui_Chart6, 30);
     lv_obj_set_y(ui_Chart6, 225);
     lv_chart_set_type(ui_Chart6, LV_CHART_TYPE_LINE);
-    lv_chart_set_point_count(ui_Chart6, 50);
+    lv_chart_set_point_count(ui_Chart6, 60);
     lv_chart_set_range(ui_Chart6, LV_CHART_AXIS_PRIMARY_Y, 175, 250);
     lv_chart_set_range(ui_Chart6, LV_CHART_AXIS_SECONDARY_Y, 0, 500);
     lv_chart_set_axis_tick(ui_Chart6, LV_CHART_AXIS_PRIMARY_X, 10, 5, 4, 2, true, 50);
@@ -231,6 +231,7 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_x(ui_Chart1, 30);
     lv_obj_set_y(ui_Chart1, 20);
     lv_chart_set_type(ui_Chart1, LV_CHART_TYPE_LINE);
+    lv_chart_set_point_count(ui_Chart1, 60);
     lv_chart_set_range(ui_Chart1, LV_CHART_AXIS_PRIMARY_Y, 0, 6);
     lv_chart_set_axis_tick(ui_Chart1, LV_CHART_AXIS_PRIMARY_X, 10, 5, 4, 2, true, 50);
     lv_chart_set_axis_tick(ui_Chart1, LV_CHART_AXIS_PRIMARY_Y, 10, 5, 5, 2, true, 50);
@@ -304,6 +305,7 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_x(ui_Chart3, 30);
     lv_obj_set_y(ui_Chart3, 20);
     lv_chart_set_type(ui_Chart3, LV_CHART_TYPE_LINE);
+    lv_chart_set_point_count(ui_Chart3, 60);
     lv_chart_set_range(ui_Chart3, LV_CHART_AXIS_SECONDARY_Y, 0, 50);
     lv_chart_set_axis_tick(ui_Chart3, LV_CHART_AXIS_PRIMARY_X, 10, 5, 4, 4, true, 50);
     lv_chart_set_axis_tick(ui_Chart3, LV_CHART_AXIS_PRIMARY_Y, 10, 5, 5, 2, true, 50);
@@ -433,14 +435,14 @@ void ui_Screen1_screen_init(void)
 
     ui_Settings = lv_tabview_add_tab(ui_TabView1, "Settings");
 
-    ui_Label2 = lv_label_create(ui_Settings);
-    lv_obj_set_width(ui_Label2, LV_SIZE_CONTENT);   /// 1
-    lv_obj_set_height(ui_Label2, LV_SIZE_CONTENT);    /// 1
-    lv_obj_set_x(ui_Label2, 35);
-    lv_obj_set_y(ui_Label2, 0);
-    lv_label_set_text(ui_Label2, "Start");
-    lv_obj_set_style_text_color(ui_Label2, lv_color_hex(0x060101), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_opa(ui_Label2, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    ui_startLabel = lv_label_create(ui_Settings);
+    lv_obj_set_width(ui_startLabel, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_startLabel, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_startLabel, 35);
+    lv_obj_set_y(ui_startLabel, 0);
+    lv_label_set_text(ui_startLabel, "Start");
+    lv_obj_set_style_text_color(ui_startLabel, lv_color_hex(0x060101), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_startLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_startButton = lv_btn_create(ui_Settings);
     lv_obj_set_width(ui_startButton, 100);
@@ -515,7 +517,7 @@ void ui_Screen1_screen_destroy(void)
     ui_Button1 = NULL;
     ui_Label14 = NULL;
     ui_Settings = NULL;
-    ui_Label2 = NULL;
+    ui_startLabel = NULL;
     ui_startButton = NULL;
     ui_Keyboard3 = NULL;
 
