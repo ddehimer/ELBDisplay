@@ -306,13 +306,13 @@ static void handle_uart_line(const char* line)
     g_last_chart_sample_ms = now_ms;
     g_has_chart_sample = true;
 
-    chart_push_value(ui_Chart2, 0, tb_v);
-    chart_push_value(ui_Chart2, 1, tb_a);
-    chart_push_value(ui_Chart6, 0, power_w);
-    chart_push_value(ui_Chart6, 1, g_last_energy_wh);
+    chart_push_value(ui_Chart2, 1, tb_v);
+    chart_push_value(ui_Chart2, 0, tb_a);
+    chart_push_value(ui_Chart6, 1, power_w);
+    chart_push_value(ui_Chart6, 0, g_last_energy_wh);
     chart_push_value(ui_Chart1, 0, aux_a);
-    chart_push_value(ui_Chart3, 0, sink_t_c);
-    chart_push_value(ui_Chart3, 1, batt_t_c);
+    chart_push_value(ui_Chart3, 1, sink_t_c);
+    chart_push_value(ui_Chart3, 0, batt_t_c);
 
     lv_chart_refresh(ui_Chart2);
     lv_chart_refresh(ui_Chart6);
@@ -507,13 +507,13 @@ void setup()
   chart_configure_for_time_series(ui_Chart1);
   chart_configure_for_time_series(ui_Chart3);
 
-  chart_bind_series_buffer(ui_Chart2, 0, g_chart2_series0, CHART_POINT_COUNT);
-  chart_bind_series_buffer(ui_Chart2, 1, g_chart2_series1, CHART_POINT_COUNT);
-  chart_bind_series_buffer(ui_Chart6, 0, g_chart6_series0, CHART_POINT_COUNT);
-  chart_bind_series_buffer(ui_Chart6, 1, g_chart6_series1, CHART_POINT_COUNT);
+  chart_bind_series_buffer(ui_Chart2, 1, g_chart2_series0, CHART_POINT_COUNT);
+  chart_bind_series_buffer(ui_Chart2, 0, g_chart2_series1, CHART_POINT_COUNT);
+  chart_bind_series_buffer(ui_Chart6, 1, g_chart6_series0, CHART_POINT_COUNT);
+  chart_bind_series_buffer(ui_Chart6, 0, g_chart6_series1, CHART_POINT_COUNT);
   chart_bind_series_buffer(ui_Chart1, 0, g_chart1_series0, CHART_POINT_COUNT);
-  chart_bind_series_buffer(ui_Chart3, 0, g_chart3_series0, CHART_POINT_COUNT);
-  chart_bind_series_buffer(ui_Chart3, 1, g_chart3_series1, CHART_POINT_COUNT);
+  chart_bind_series_buffer(ui_Chart3, 1, g_chart3_series0, CHART_POINT_COUNT);
+  chart_bind_series_buffer(ui_Chart3, 0, g_chart3_series1, CHART_POINT_COUNT);
 
   // Clear chart placeholders so UART data is the only visible source
   chart_clear_all(ui_Chart2);
