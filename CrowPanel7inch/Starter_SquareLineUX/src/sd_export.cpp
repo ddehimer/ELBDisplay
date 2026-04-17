@@ -119,22 +119,34 @@ bool sd_export_combined_csv(const char* name_raw, const char* date_raw,
     return false;
   }
 
-  f.println("index,t_s,TestBattery_V,TestBattery_A,Power_W,Energy_Wh,AuxCurrent_A,HeatsinkTemp_C,BatteryTemp_C");
+  f.println("Sample,Time (s),Test Battery (V),Test Battery (A),Power (W),Energy (Wh),Resistance (ohms),Aux Battery (A),HeatsinkTemp (C),BatteryTemp (C)");
 
   for (size_t i = 0; i < count; i++) {
     Sample s{};
     if (!dm_get_oldest(i, s)) continue;
 
-    f.printf("%u,%lu,%d,%d,%d,%.3f,%d,%d,%d\n",
+    const double test_battery_v = (double)s.testBattery_mv / 1000.0;
+    const double test_battery_a = (double)s.testBattery_ma / 1000.0;
+    const double power_w = (double)s.power_mw / 1000.0;
+    const double energy_wh = (double)s.energy_wh_milli / 1000.0;
+    const double aux_current_a = (double)s.auxCurrent_ma / 1000.0;
+    const double heatsink_temp_c = (double)s.heatsinkTemp_mc / 1000.0;
+    const double battery_temp_c = (double)s.batteryTemp_mc / 1000.0;
+    const double resistance_ohms = (s.testBattery_ma != 0)
+                                     ? ((double)s.testBattery_mv / (double)s.testBattery_ma)
+                                     : 0.0;
+
+    f.printf("%u,%lu,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f\n",
              (unsigned)i,
              (unsigned long)s.t_s,
-             (int)s.testBattery_s1,
-             (int)s.testBattery_s2,
-             (int)s.power_w,
-             (double)s.energy_wh_milli / 1000.0,
-             (int)s.auxCurrent_s1,
-             (int)s.temperatures_s1,
-             (int)s.temperatures_s2);
+             test_battery_v,
+             test_battery_a,
+             power_w,
+             energy_wh,
+             resistance_ohms,
+             aux_current_a,
+             heatsink_temp_c,
+             battery_temp_c);
   }
 
   f.close();

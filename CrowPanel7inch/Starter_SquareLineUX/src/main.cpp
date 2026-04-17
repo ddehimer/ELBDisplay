@@ -596,13 +596,13 @@ void loop()
     s.t_s = now / 1000UL;
     if (g_has_uart_sample)
     {
-      s.testBattery_s1 = (int16_t)lroundf(g_last_tb1);
-      s.testBattery_s2 = (int16_t)lroundf(g_last_tb2);
-      s.power_w = (int16_t)lroundf(g_last_power_w);
+      s.testBattery_mv = (int32_t)lroundf(g_last_tb1 * 1000.0f);
+      s.testBattery_ma = (int32_t)lroundf(g_last_tb2 * 1000.0f);
+      s.power_mw = (int32_t)lroundf(g_last_power_w * 1000.0f);
       s.energy_wh_milli = (int32_t)lroundf(g_last_energy_wh * 1000.0f);
-      s.auxCurrent_s1 = (int16_t)lroundf(g_last_aux);
-      s.temperatures_s1 = (int16_t)lroundf(g_last_t1);
-      s.temperatures_s2 = (int16_t)lroundf(g_last_t2);
+      s.auxCurrent_ma = (int32_t)lroundf(g_last_aux * 1000.0f);
+      s.heatsinkTemp_mc = (int32_t)lroundf(g_last_t1 * 1000.0f);
+      s.batteryTemp_mc = (int32_t)lroundf(g_last_t2 * 1000.0f);
     }
 
     dm_push(s);

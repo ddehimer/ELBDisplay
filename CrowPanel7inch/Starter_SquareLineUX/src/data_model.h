@@ -4,13 +4,13 @@
 
 struct Sample {
   uint32_t t_s;
-  int16_t testBattery_s1;
-  int16_t testBattery_s2;
-  int16_t power_w;
+  int32_t testBattery_mv;
+  int32_t testBattery_ma;
+  int32_t power_mw;
   int32_t energy_wh_milli;
-  int16_t auxCurrent_s1;
-  int16_t temperatures_s1;
-  int16_t temperatures_s2;
+  int32_t auxCurrent_ma;
+  int32_t heatsinkTemp_mc;
+  int32_t batteryTemp_mc;
 };
 
 void dm_init();
