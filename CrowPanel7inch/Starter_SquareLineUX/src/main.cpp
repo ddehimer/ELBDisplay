@@ -56,8 +56,8 @@ static bool g_has_chart_sample = false;
 // Expected line: DATA,<tb_v>,<tb_a>,<aux_a>,<sink_t_c>,<batt_t_c>,<pot_v>\n
 // ----------------------------------------------------
 static constexpr size_t UART_LINE_MAX = 96;
-static constexpr uint32_t CHART_BUFFER_SAMPLE_INTERVAL_MS = 300000UL;
-static constexpr uint16_t CHART_POINT_COUNT = 36;
+static constexpr uint32_t CHART_BUFFER_SAMPLE_INTERVAL_MS = 150000UL;
+static constexpr uint16_t CHART_POINT_COUNT = 72;
 static char g_uart_line[UART_LINE_MAX];
 static size_t g_uart_len = 0;
 
