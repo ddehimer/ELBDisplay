@@ -118,10 +118,11 @@ SHUNT_RESISTANCE = 0.0025  # ohms
 # TEST BATTERY CALIBRATION
 # Derived from measured values:
 #   voltage: 12.1 V actual vs 11.8 V displayed
+#   current: 8.4 A actual vs 11.6 A displayed
 # ============================================================
 TEST_BATTERY_DIVIDER_RATIO = 11.0
 TEST_BATTERY_VOLTAGE_CAL = 12.1 / 11.8
-TEST_BATTERY_CURRENT_CAL = 1.0
+TEST_BATTERY_CURRENT_CAL = 8.4 / 11.6
 
 # ============================================================
 # SHUNT CURRENT FUNCTION (30A / 75mV)
